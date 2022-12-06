@@ -1,0 +1,70 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+
+namespace AOC2021
+{
+    class GraphItem
+    {
+        public List<KeyValuePair<GraphItem, ulong>> links = new List<KeyValuePair<GraphItem, ulong>>();
+        public string State;
+        public ulong Length = ulong.MaxValue;
+        public bool IsEnd;
+
+        internal ulong Dijkstra(GraphItem value, List<GraphItem> checkList = null)
+        {
+            if (checkList == null)
+                checkList = new List<GraphItem>() { this };
+            foreach (var l in links)
+            {
+                if (l.Value == ulong.MaxValue)
+                {
+                    l.Key.Length = Length + l.Value;
+                    checkList.Add(l.Key);
+                }
+                if (l.Key.Length > Length + l.Value)
+                    l.Key.Length = Length + l.Value;
+            }
+            checkList.Remove(this);
+            checkList.OrderBy(x => x.Length);
+            foreach (var l in checkList)
+                Dijkstra(value, checkList);
+            return value.Length;
+        }
+    }
+
+    class Day23 : DayPattern<KeyValuePair<GraphItem,GraphItem>>
+    {
+        public override void Parse(string path)
+        {
+            var coords = File.ReadAllText(path);// AnyThings.Parse.ParseToCharMap(path);
+             
+            coords = coords.Replace(' ', '#');
+
+            var mapStringBuilder = new StringBuilder();
+            foreach (var c in coords)
+                if ((c == '.') ||(c >= 'A' && c <= 'D'))
+                    mapStringBuilder.Append((char)0);
+                else
+                    mapStringBuilder.Append(c);
+
+            coords = coords.Replace('#' + Environment.NewLine, "#");
+
+
+        }
+
+        public override string PartOne()
+        {
+            var length = data.Key.Dijkstra(data.Value);
+            return length.ToString();
+        }
+
+        public override string PartTwo()
+        {
+            long result = 0;
+            return result.ToString();
+        }
+    }
+}
