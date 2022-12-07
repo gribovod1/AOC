@@ -38,10 +38,10 @@ namespace AOC2022
             return counter.ToString();
         }
 
-        static bool magic(string source)
+        static bool magic(string source, int start, int end)
         {
             uint val = 0;
-            for (var i = 0; i < source.Length; ++i)
+            for (var i = start; i < end; ++i)
             {
                 var s = 1u << (source[i] - 'a');
                 if ((val & s) != 0)
@@ -57,8 +57,8 @@ namespace AOC2022
 
             for (var i = 0; i < data.Length - 14; ++i)
             {
-                if (magic(data.Substring(i, 14)))
-                    return (counter+14).ToString();
+                if (magic(data, i, i + 14))
+                    return (counter + 14).ToString();
                 ++counter;
             }
             return "NOT";
