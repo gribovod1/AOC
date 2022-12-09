@@ -15,9 +15,17 @@
     <None Remove="Data\day5.txt" />
     <None Remove="Data\day6.txt" />
     <None Remove="Data\day7.txt" />
+    <None Remove="Data\day8.txt" />
+    <None Remove="Data\day9.txt" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Data\day9.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\day8.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Data\day7.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

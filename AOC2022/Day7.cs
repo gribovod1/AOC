@@ -2,64 +2,55 @@
 
 namespace AOC2022
 {
-        class Dir
+    class Dir
+    {
+        public int size;
+        public Dictionary<string, Dir> inner = new Dictionary<string, Dir>();
+
+        public int getSize()
         {
-            public int size;
-            public Dir root;
-            public string name;
-            public Dictionary<string, Dir> inner = new Dictionary<string, Dir>();
-            public Dictionary<string, int> files = new Dictionary<string, int>();
+            var result = size;
+            foreach (var d in inner)
+                result += d.Value.getSize();
+            return result;
+        }
 
-            public int getSize()
-            {
-                var result = size;
-                foreach (var d in inner)
-                    result += d.Value.getSize();
-                return result;
-            }
+        public void GetAllDirectories(List<Dir> data)
+        {
+            data.Add(this);
+            foreach (var d in inner)
+                d.Value.GetAllDirectories(data);
+        }
 
-            public void GetAllDirectories(List<Dir> data)
+        public void Load(List<string> data, ref int line)
+        {
+            while (line < data.Count)
             {
-                    data.Add(this);
-                foreach (var d in inner)
-                    d.Value.GetAllDirectories(data);
-            }
-
-            public void Load(List<string> data, ref int line)
-            {
-                while (line < data.Count)
+                var ss = data[line].Split(' ');
+                if (ss[0] == "$")
                 {
-                   var  ss = data[line].Split(' ');
-                    if (ss[0] == "$")
+                    if (ss[1] == "cd")
                     {
-                        if (ss[1] == "cd")
-                        {
-                            if (ss[2] == "..")
-                                return;
-                            ++line;
-                            inner[ss[2]].Load(data, ref line);
-                        }
+                        if (ss[2] == "..")
+                            return;
+                        ++line;
+                        inner[ss[2]].Load(data, ref line);
+                    }
+                }
+                else
+                {
+                    if (ss[0] == "dir")
+                    {
+                        var d = new Dir();
+                        inner.Add(ss[1], d);
                     }
                     else
-                    {
-                        if (ss[0] == "dir")
-                        {
-                            var d = new Dir();
-                            d.root = this;
-                            d.name = ss[1];
-                            inner.Add(ss[1], d);
-                        }
-                        else
-                        {
-                            var fs = int.Parse(ss[0]);
-                            size += fs;
-                            files.Add(ss[1], fs);
-                        }
-                    }
-                    ++line;
+                        size += int.Parse(ss[0]);
                 }
+                ++line;
             }
         }
+    }
 
     internal class Day7 : DayPattern<List<Dir>>
     {
@@ -67,7 +58,6 @@ namespace AOC2022
         {
             var text = File.ReadAllText(path).Split(Environment.NewLine).ToList();
             var root = new Dir();
-            root.name = "/";
             var l = 1;
             root.Load(text, ref l);
             data = new List<Dir>();
