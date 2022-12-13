@@ -2,7 +2,7 @@
 
 namespace AOC2022
 {
-    internal class Day3 : DayPattern<List<string>>
+    internal class Day03 : DayPattern<List<string>>
     {
         public override void Parse(string path)
         {

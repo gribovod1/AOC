@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace AOC2022
 {
-    internal class Day9 : DayPattern<List<KeyValuePair<char,int>>>
+    internal class Day09 : DayPattern<List<KeyValuePair<char,int>>>
     {
         public override void Parse(string path)
         {

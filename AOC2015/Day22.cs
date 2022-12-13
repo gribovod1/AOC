@@ -1,10 +1,6 @@
 ﻿using AnyThings;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AOC2015
 {
@@ -21,7 +17,6 @@ namespace AOC2015
         public TypeStep type;
         public static int boss_damage = 0;
         public int player_hit = 0;
-        public int player_armor = 0;
         public int player_mana = 0;
         public int player_mana_summary = 0;
         public int boss_hit = 0;
@@ -39,7 +34,6 @@ namespace AOC2015
         {
             this.type = type;
             player_hit = source.player_hit;
-            player_armor = source.player_armor;
             player_mana = source.player_mana;
             player_mana_summary = source.player_mana_summary;
             boss_hit = source.boss_hit;
@@ -48,7 +42,7 @@ namespace AOC2015
             recharge = source.recharge;
         }
 
-    void CounterCalc()
+        void CounterCalc()
         {
             if (poison > 0)
             {
@@ -57,7 +51,6 @@ namespace AOC2015
             }
             if (shield > 0)
             {
-                player_armor += 7;
                 --shield;
             }
             if (recharge > 0)
@@ -95,82 +88,73 @@ namespace AOC2015
             return true;
         }
 
-        public int Play(Queue<Step> data)
+        public bool cast()
         {
-            CounterCalc();
-            if (boss_hit <= 0) return player_mana_summary;
             switch (type)
             {
                 case TypeStep.Missile:
                     {
-                        if (!cast(53)) return -1;
+                        if (!cast(53)) return false;
                         boss_hit -= 4;
                         break;
                     }
                 case TypeStep.Drain:
                     {
-                        if (!cast(73)) return -1;
-                        player_hit += 2;
+                        if (!cast(73)) return false;
+                        player_hit = Math.Min(50, player_hit + 2);
                         boss_hit -= 2;
                         break;
                     }
                 case TypeStep.Shield:
                     {
-                        if (!cast(113) || shield > 0) return -1;
+                        if (!cast(113) || shield > 0) return false;
                         shield = 6;
                         break;
                     }
                 case TypeStep.Poison:
                     {
-                        if (!cast(173) || poison > 0) return -1;
+                        if (!cast(173) || poison > 0) return false;
                         poison = 6;
                         break;
                     }
                 case TypeStep.Recharge:
                     {
-                        if (!cast(229) || recharge > 0) return -1;
+                        if (!cast(229) || recharge > 0) return false;
                         recharge = 5;
                         break;
                     }
             }
-            if (boss_hit <= 0) return player_mana_summary;
-
-            //Boss step
-            CounterCalc();
-            if (boss_hit <= 0) return player_mana_summary;
-            player_hit -= Math.Max(boss_damage - player_armor, 1);
-            if (player_hit > 0) AddAllPlayerSteps(data);
-
-            return -1;
+            return true;
         }
 
-
-        public int GetMinMana(ref int currResult)
+        public int GetMinMana(ref int currResult, bool hard = false)
         {
-            if (player_mana_summary >= currResult) return -1;
-            if (player_mana < 53) return -1;
-            if (player_hit <= 0) return -1;
-            if (boss_hit <= 0) return player_mana_summary;
-            int result = int.MaxValue;
-
-            // Player step
-            CounterCalc();
-            if (boss_hit <= 0) return player_mana_summary;
-            var ss = GetNextPlayerSteps();
-            foreach(var s in ss)
-            {
-                var variant = s.GetMinMana(ref currResult);
-                if (variant >= 0)
-                    result = Math.Min(variant, result);
-            }
-            if (result < currResult)
-                currResult = result;
 
             // Boss step
             CounterCalc();
             if (boss_hit <= 0) return player_mana_summary;
-            player_hit -= Math.Max(boss_damage - player_armor, 1);
+            player_hit -= Math.Max(boss_damage - (shield > 0 ? 7 : 0), 1);
+            if (hard) --player_hit;
             if (player_hit <= 0) return -1;
+
+            // Player step
+            CounterCalc();
+            if (boss_hit <= 0) return player_mana_summary;
+            if (!cast() || player_mana_summary >= currResult)
+                return -1;
+            if (boss_hit <= 0) return player_mana_summary;
+            var ss = GetNextPlayerSteps();
+            int result = int.MaxValue;
+            foreach (var s in ss)
+            {
+                var variant = s.GetMinMana(ref currResult, hard);
+                if (variant >= 0)
+                {
+                    result = Math.Min(variant, result);
+                    if (result < currResult)
+                        currResult = result;
+                }
+            }
 
             return result < int.MaxValue ? result : -1;
         }
@@ -181,32 +165,36 @@ namespace AOC2015
         public override void Parse(string path)
         {
             data = new Queue<Step>();
-       //      var s = new Step { player_hit = 10, player_mana = 250, boss_hit = 13 };Step.boss_damage = 8;
-           var s = new Step { player_hit = 50, player_mana = 500, boss_hit = 58 }; Step.boss_damage = 9;
-            s.AddAllPlayerSteps(data);
+            Step.boss_damage = 9;
         }
 
         public override string PartOne()
         {
+            data.Clear();
+            var f = new Step { player_hit = 50 + Step.boss_damage, player_mana = 500, boss_hit = 58 };
+            f.AddAllPlayerSteps(data);
             var result = int.MaxValue;
-         //   return data.Dequeue().getMinMana(ref result).ToString();
-
-            while (data.Count > 0)
+            foreach (var s in data)
             {
-                var s = data.Dequeue();
-                if (s.player_mana_summary < result)
-                {
-                    var mana = s.Play(data);
-                    if (mana > 0 && mana < result)
-                        result = mana;
-                }
+                var m = s.GetMinMana(ref result);
+                if (m > 0 && m < result)
+                    result = m;
             }
             return result.ToString();
         }
 
         public override string PartTwo()
         {
-            int result = 0;
+            data.Clear();
+            var f = new Step { player_hit = 50 + Step.boss_damage, player_mana = 500, boss_hit = 58 };
+            f.AddAllPlayerSteps(data);
+            var result = int.MaxValue;
+            foreach (var s in data)
+            {
+                var m = s.GetMinMana(ref result, true);
+                if (m > 0 && m < result)
+                    result = m;
+            }
             return result.ToString();
         }
     }

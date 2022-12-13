@@ -78,7 +78,7 @@ namespace AOC2022
             return points;
         }
     }
-    internal class Day2 : DayPattern<List<Round>>
+    internal class Day02 : DayPattern<List<Round>>
     {
         public override void Parse(string path)
         {

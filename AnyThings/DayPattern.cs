@@ -10,6 +10,11 @@ namespace AnyThings
         public abstract string PartTwo();
         public abstract void Parse(string path);
 
+        public virtual void InitData()
+        {
+
+        }
+
         public void Exec(string path)
         {
             Console.Title = $"Run {this.GetType().Name}";

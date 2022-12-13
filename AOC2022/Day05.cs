@@ -24,7 +24,7 @@ namespace AOC2022
         }
     }
 
-    internal class Day5 : DayPattern<List<move>>
+    internal class Day05 : DayPattern<List<move>>
     {
         List<Stack<char>> cargo = new List<Stack<char>>();
         public override void Parse(string path)

@@ -1,4 +1,4 @@
-﻿using CurrentDay = AOC2015.Day22;
+﻿using CurrentDay = AOC2015.Day24;
 
 namespace AOC2015
 {

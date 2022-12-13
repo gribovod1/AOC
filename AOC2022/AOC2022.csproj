@@ -8,43 +8,55 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Data\day1.txt" />
-    <None Remove="Data\day2.txt" />
-    <None Remove="Data\day3.txt" />
-    <None Remove="Data\day4.txt" />
-    <None Remove="Data\day5.txt" />
-    <None Remove="Data\day6.txt" />
-    <None Remove="Data\day7.txt" />
-    <None Remove="Data\day8.txt" />
-    <None Remove="Data\day9.txt" />
+    <None Remove="Data\day01.txt" />
+    <None Remove="Data\day02.txt" />
+    <None Remove="Data\day03.txt" />
+    <None Remove="Data\day04.txt" />
+    <None Remove="Data\day05.txt" />
+    <None Remove="Data\day06.txt" />
+    <None Remove="Data\day07.txt" />
+    <None Remove="Data\day08.txt" />
+    <None Remove="Data\day09.txt" />
+    <None Remove="Data\day11.txt" />
+    <None Remove="Data\day12.txt" />
+    <None Remove="Data\day13.txt" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Data\day9.txt">
+    <Content Include="Data\day13.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Data\day8.txt">
+    <Content Include="Data\day12.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Data\day7.txt">
+    <Content Include="Data\day11.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Data\day6.txt">
+    <Content Include="Data\day09.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Data\day5.txt">
+    <Content Include="Data\day08.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Data\day4.txt">
+    <Content Include="Data\day07.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Data\day3.txt">
+    <Content Include="Data\day06.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Data\day2.txt">
+    <Content Include="Data\day05.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Data\day1.txt">
+    <Content Include="Data\day04.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\day03.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\day02.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\day01.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
