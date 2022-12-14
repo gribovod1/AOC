@@ -130,7 +130,7 @@ namespace AOC2021
     }
     class Day16 : DayPattern<Packet>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             var s = System.IO.File.ReadAllText(path);
             var sb = new StringBuilder();

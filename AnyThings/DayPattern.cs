@@ -1,5 +1,6 @@
 ﻿using AOC;
 using System;
+using System.IO;
 
 namespace AnyThings
 {
@@ -8,7 +9,14 @@ namespace AnyThings
         public T data;
         public abstract string PartOne();
         public abstract string PartTwo();
-        public abstract void Parse(string path);
+        public virtual void ParseFile(string path)
+        {
+            Parse(File.ReadAllText(path));
+        }
+        public virtual void Parse(string text)
+        {
+
+        }
 
         public virtual void InitData()
         {
@@ -18,7 +26,7 @@ namespace AnyThings
         public void Exec(string path)
         {
             Console.Title = $"Run {this.GetType().Name}";
-            Parse(path);
+            ParseFile(path);
             Console.WriteLine($"{this.GetType().Name}: ");
             var one = PartOne();
             var two = PartTwo();

@@ -172,7 +172,7 @@ namespace AOC2021
 
     class Day23 : DayPattern<AmphipodCave>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             var coords = File.ReadAllText(path);// AnyThings.Parse.ParseToCharMap(path);
 

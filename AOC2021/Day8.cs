@@ -101,7 +101,7 @@ namespace AOC2021
 
     class Day8 : DayPattern<DayType>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             data = new DayType();
 

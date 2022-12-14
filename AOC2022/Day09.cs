@@ -5,7 +5,7 @@ namespace AOC2022
 {
     internal class Day09 : DayPattern<List<KeyValuePair<char,int>>>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             var text = File.ReadAllText(path).Split(Environment.NewLine).ToList();
             data = new List<KeyValuePair<char, int>>();

@@ -53,7 +53,7 @@ namespace AOC2021
 
     class Day12 : DayPattern<Cave>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             var dict = new Dictionary<string, Cave>();
             var ss = File.ReadAllLines(path);

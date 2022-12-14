@@ -11,7 +11,7 @@ namespace AOC2021
 {
     class Day10 : DayPattern<DayType>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             data = new List<string>(File.ReadAllLines(path));
             foreach (var s in data)

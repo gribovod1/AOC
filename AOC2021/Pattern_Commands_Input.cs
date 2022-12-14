@@ -9,7 +9,7 @@ namespace AOC2021
 {
     public class Pattern_Commands_Input : DayPattern<Parsed>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             var strings = File.ReadAllLines(path);
             data = new Parsed();

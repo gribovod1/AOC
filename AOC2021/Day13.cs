@@ -74,7 +74,7 @@ namespace AOC2021
 
     class Day13 : DayPattern<DayType>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             data = new Paper();
             var text = File.ReadAllText(path);

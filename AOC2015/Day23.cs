@@ -8,7 +8,7 @@ namespace AOC2015
 {
     internal class Day23 : DayPattern<List<string>>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             data = File.ReadAllText(path).Split(new string[] { Environment.NewLine },StringSplitOptions.RemoveEmptyEntries).ToList();
         }

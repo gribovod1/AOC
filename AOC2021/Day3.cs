@@ -7,7 +7,7 @@ namespace AOC2021
 {
     class Day3 : DayPattern<string[]>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             data= File.ReadAllLines(path);
         }

@@ -268,7 +268,7 @@ namespace AOC2021
 
     class Day24 : DayPattern<State>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             data = new State(File.ReadAllLines(path));// AnyThings.Parse.ParseToCharMap(path);
         }

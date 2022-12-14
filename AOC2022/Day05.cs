@@ -27,7 +27,7 @@ namespace AOC2022
     internal class Day05 : DayPattern<List<move>>
     {
         List<Stack<char>> cargo = new List<Stack<char>>();
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             var ss = File.ReadAllText(path).Split(Environment.NewLine + Environment.NewLine);
             var cs = ss[0].Split(Environment.NewLine);

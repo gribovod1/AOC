@@ -162,7 +162,7 @@ namespace AOC2015
 
     internal class Day22 : DayPattern<Queue<Step>>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             data = new Queue<Step>();
             Step.boss_damage = 9;

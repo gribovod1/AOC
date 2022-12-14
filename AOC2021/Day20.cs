@@ -167,7 +167,7 @@ namespace AOC2021
 
     class Day20 : DayPattern<ImageConverter>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             var ss = File.ReadAllText(path).Split(new string[] { Environment.NewLine + Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             data = new ImageConverter();

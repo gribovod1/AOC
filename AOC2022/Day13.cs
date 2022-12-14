@@ -4,7 +4,7 @@ namespace AOC2022
 {
     internal class Day13 : DayPattern<List<(Range13, Range13)>>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             var text = File.ReadAllText(path).Split(Environment.NewLine + Environment.NewLine);
             data = new List<(Range13, Range13)>();

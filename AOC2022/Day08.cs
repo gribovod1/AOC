@@ -4,7 +4,7 @@ namespace AOC2022
 {
     internal class Day08 : DayPattern<int[,]>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             var text = File.ReadAllText(path).Split(Environment.NewLine);
             data = new int[text.Length, text.Length];

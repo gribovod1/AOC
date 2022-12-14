@@ -5,7 +5,7 @@ namespace AOC2021
 {
     class Day9 : DayPattern<char[,]>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             data= AnyThings.Parse.PathToCharMap(path);
         }

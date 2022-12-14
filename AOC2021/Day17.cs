@@ -57,7 +57,7 @@ namespace AOC2021
             return false;
         }
 
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             data = new DeepArea(207, 263, -63, -115);
         }

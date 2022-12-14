@@ -8,7 +8,7 @@ namespace AOC2021
 {
     class Day19 : DayPattern<List<Scaner>>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             var text = File.ReadAllText(path);
             var scanText = text.Split(new string[] { Environment.NewLine + Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);

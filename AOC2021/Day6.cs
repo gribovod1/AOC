@@ -9,7 +9,7 @@ namespace AOC2021
 {
     class Day6 : DayPattern<Day6Type>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             data = new Day6Type();
             var ss = File.ReadAllText(path).Split(',');

@@ -127,7 +127,7 @@ namespace AOC2021
 
     class Day18 : DayPattern<List<SnailPair>>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             var lines = File.ReadAllLines(path);
             data = new List<SnailPair>();

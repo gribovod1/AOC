@@ -80,7 +80,7 @@ namespace AOC2022
     }
     internal class Day02 : DayPattern<List<Round>>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             var text = File.ReadAllText(path);
             var scanText = text.Split(Environment.NewLine);

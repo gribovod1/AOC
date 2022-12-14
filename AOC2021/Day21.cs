@@ -6,7 +6,7 @@ namespace AOC2021
 {
     class Day21 : DayPattern<Game21>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             data = new Game21(6, 8);
         }

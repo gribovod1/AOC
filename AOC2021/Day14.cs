@@ -11,7 +11,7 @@ namespace AOC2021
         Dictionary<string, char> inst = new Dictionary<string, char>();
         Dictionary<string, long> pairs = new Dictionary<string, long>();
 
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             var ss = File.ReadAllLines(path);
             data = ss[0];

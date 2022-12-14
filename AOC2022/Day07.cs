@@ -54,7 +54,7 @@ namespace AOC2022
 
     internal class Day07 : DayPattern<List<Dir>>
     {
-        public override void Parse(string path)
+        public override void ParseFile(string path)
         {
             var text = File.ReadAllText(path).Split(Environment.NewLine).ToList();
             var root = new Dir();
