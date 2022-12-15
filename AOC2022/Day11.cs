@@ -71,13 +71,9 @@ namespace AOC2022
             Operation = ss[2].IndexOf('*') > 0 ? 1 : 0;
             var opers = ss[2].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (opers[5] == "old")
-            {
                 Operation = 2;
-            }
             else
-            {
                 OperationValue = int.Parse(opers[5]);
-            }
             var tests = ss[3].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             Rule = int.Parse(tests[tests.Length - 1]);
             var destTrues = ss[4].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
