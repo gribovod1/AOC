@@ -4,20 +4,21 @@ namespace AOC2022
 {
     internal class Day16 : DayPattern<Dictionary<string, Valve>>
     {
-        int rateCount = 0;
+        int summaryRate = 0;
         public override void Parse(string singleText)
         {
             var text = singleText.Split(Environment.NewLine).ToList();
             data = new();
-            foreach (var s in text)
+            for (var sIndex = 0; sIndex < text.Count; ++sIndex)
             {
-                var ss = s.Split(new char[] { ' ', ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                var ss = text[sIndex].Split(new char[] { ' ', ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
                 var rt = ss[4].Split('=');
                 var v = new Valve(ss[1], int.Parse(rt[1]));
+                v.Index = sIndex;
                 for (var i = 9; i < ss.Length; ++i)
                     v.AddValve(ss[i]);
                 data.Add(v.Name, v);
-                if (v.Rate > 0) ++rateCount;
+                summaryRate += v.Rate;
             }
             foreach (var v in data)
                 v.Value.LoadDistances(data);
@@ -25,116 +26,98 @@ namespace AOC2022
 
         public override string PartOne()
         {
-            var p = new HashSet<string>();
-            p.Add("AA");
-            return GetMaxPath(data["AA"], 30, p).ToString();
+            maxResult = 0;
+            return GetMaxPathE(data["AA"], 0, data["AA"], 100, 30, 0, 0, summaryRate).ToString();
         }
 
         public override string PartTwo()
         {
-            var p = new HashSet<string>();
-            p.Add("AA");
-            var youResult = GetMaxPath2(data["AA"], 26, p);
-            var elephantResult = GetMaxPath2(data["AA"], 26, youResult.Item2);
-            return (youResult.Item1 + elephantResult.Item1).ToString();
+            maxResult = 0;
+            return GetMaxPathE(data["AA"], 0, data["AA"], 0, 26, 0, 0, summaryRate).ToString();
         }
 
-        int GetMaxPathOld(int restPath, Valve yourValve, Valve elephantValve, int yourCounter, int elephantCounter, HashSet<string> vs, int delta)
+        bool IsNotUsed(UInt64 valves, Valve valve)
         {
-            if (restPath <= 0) return delta;
-            var result = 0;
-            if (yourCounter > 0 && elephantCounter > 0)
-                return delta + GetMaxPathOld(restPath - 1, yourValve, elephantValve, yourCounter - 1, elephantCounter - 1, vs, delta);
-            else if (yourCounter <= 0 && elephantCounter <= 0)
+            return (valves & ((UInt64)1 << valve.Index)) == 0;
+        }
+
+        UInt64 SetUsed(UInt64 valves, Valve valve)
+        {
+            return valves | ((UInt64)1 << valve.Index);
+        }
+
+        int maxResult = 0;
+
+        int GetMaxPathE(Valve source, int busy, Valve sourceElephant, int busyElephant, int restPath, UInt64 usedValves, int currentResult, int restRate)
+        {
+            int result = currentResult;
+            if (restPath > 0)
             {
-                foreach (var v in data)
-                    if (v.Value.Rate > 0 && !vs.Contains(v.Key))
-                        foreach (var e in data)
-                            if (e.Key != v.Key && e.Value.Rate > 0 && !vs.Contains(e.Key))
-                            {
-                                var yourDistance = GetLengthPath(yourValve, v.Value);
-                                var elephantDistance = GetLengthPath(elephantValve, e.Value);
-                                var nvs = new HashSet<string>(vs);
-                                nvs.Add(v.Key);
-                                nvs.Add(e.Key);
-                                var max = GetMaxPathOld(restPath - 1, v.Value, e.Value, yourDistance, elephantDistance, nvs, delta + v.Value.Rate + e.Value.Rate);
-                                if (max > result)
-                                    result = max;
-                            }
+                if (restRate * (restPath - 1) + currentResult > maxResult)
+                {
+                    if (busy == 0)
+                    {
+                        if (busyElephant == 0)
+                        {
+                            foreach (var d in source.Distances)
+                                if (d.Value + 1 <= restPath && IsNotUsed(usedValves, d.Key))
+                                {
+                                    var used = SetUsed(usedValves, d.Key);
+                                    foreach (var dE in sourceElephant.Distances)
+                                        if (dE.Value + 1 <= restPath && IsNotUsed(used, dE.Key))
+                                        {
+                                            var steps = Math.Min(d.Value + 1, dE.Value + 1);
+                                            var currentRate = d.Key.Rate * (restPath - d.Value - 1) + dE.Key.Rate * (restPath - dE.Value - 1);
+                                            var max = GetMaxPathE(d.Key, d.Value + 1 - steps, dE.Key, dE.Value + 1 - steps, restPath - steps, SetUsed(used, dE.Key), currentResult + currentRate, restRate - d.Key.Rate - dE.Key.Rate);
+                                            if (result < max)
+                                                result = max;
+                                        }
+                                }
+                        }
+                        else
+                        {
+                            foreach (var d in source.Distances)
+                                if (d.Value + 1 <= restPath && IsNotUsed(usedValves, d.Key))
+                                {
+                                    var steps = Math.Min(d.Value + 1, busyElephant);
+                                    var currentRate = d.Key.Rate * (restPath - d.Value - 1);
+                                    var max = GetMaxPathE(d.Key, d.Value + 1 - steps, sourceElephant, busyElephant - steps, restPath - steps, SetUsed(usedValves, d.Key), currentResult + currentRate, restRate - d.Key.Rate);
+                                    if (result < max)
+                                        result = max;
+                                }
+                        }
+                    }
+                    else
+                    {
+                        if (busyElephant == 0)
+                        {
+                            foreach (var d in sourceElephant.Distances)
+                                if (d.Value + 1 <= restPath && IsNotUsed(usedValves, d.Key))
+                                {
+                                    var steps = Math.Min(busy, d.Value + 1);
+                                    var currentRate = d.Key.Rate * (restPath - d.Value - 1);
+                                    var max = GetMaxPathE(source, busy - steps, d.Key, d.Value + 1 - steps, restPath - steps, SetUsed(usedValves, d.Key), currentResult + currentRate, restRate - d.Key.Rate);
+                                    if (result < max)
+                                        result = max;
+                                }
+                        }
+                        else
+                        {
+                            var steps = Math.Min(busy, busyElephant);
+                            result = GetMaxPathE(source, busy - steps, sourceElephant, busyElephant - steps, restPath - steps, usedValves, currentResult, restRate);
+                        }
+                    }
+                }
             }
-            else if (yourCounter <= 0)
-            {
-                foreach (var v in data)
-                    if (v.Value.Rate > 0 && !vs.Contains(v.Key))
-                    {
-                        var yourDistance = GetLengthPath(yourValve, v.Value);
-                        var nvs = new HashSet<string>(vs);
-                        nvs.Add(v.Key);
-                        var max = GetMaxPathOld(restPath - 1, v.Value, elephantValve, yourDistance, elephantCounter - 1, nvs, delta + v.Value.Rate);
-                        if (max > result)
-                            result = max;
-                    }
-            }
-            else
-            {
-                foreach (var e in data)
-                    if (e.Value.Rate > 0 && !vs.Contains(e.Key))
-                    {
-                        var elephantDistance = GetLengthPath(elephantValve, e.Value);
-                        var nvs = new HashSet<string>(vs);
-                        nvs.Add(e.Key);
-                        var max = GetMaxPathOld(restPath - 1, yourValve, e.Value, yourCounter - 1, elephantDistance, nvs, delta + e.Value.Rate);
-                        if (max > result)
-                            result = max;
-                    }
-            }
-            return delta + result;
-        }
-
-        (int, HashSet<string>) GetMaxPath2(Valve source, int restPath, HashSet<string> vs)
-        {
-            if (restPath <= 0) return (0, vs);
-            var result = (0, vs);
-            if (vs.Count < rateCount + 1)
-                foreach (var v in data)
-                    if (!vs.Contains(v.Key) && v.Value.Rate > 0)
-                    {
-                        var r = GetLengthPath(source, v.Value);
-                        var nvs = new HashSet<string>(vs);
-                        nvs.Add(v.Key);
-                        var max = GetMaxPath2(v.Value, restPath - (source.Rate > 0 ? 1 : 0) - r, nvs);
-                        if (max.Item1 > result.Item1)
-                            result = max;
-                    }
-            return (result.Item1 + source.Rate * (restPath - 1), result.Item2);
-        }
-
-        int GetMaxPath(Valve source, int restPath, HashSet<string> vs)
-        {
-            if (restPath <= 0) return 0;
-            var result = 0;
-            if (vs.Count < rateCount + 1)
-                foreach (var v in data)
-                    if (!vs.Contains(v.Key) && v.Value.Rate > 0)
-                    {
-                        var r = GetLengthPath(source, v.Value);
-                        var nvs = new HashSet<string>(vs);
-                        nvs.Add(v.Key);
-                        var max = GetMaxPath(v.Value, restPath - (source.Rate > 0 ? 1 : 0) - r, nvs);
-                        if (max > result)
-                            result = max;
-                    }
-            return result + source.Rate * (restPath - 1);
-        }
-
-        int GetLengthPath(Valve source, Valve target)
-        {
-            return source.Distances[target];
+            if (result > maxResult)
+                maxResult = result;
+            return result;
         }
     }
 
     class Valve
     {
+        public int Index;
         public int Rate;
         public List<string> valves = new();
         public Dictionary<Valve, int> Distances = new();
@@ -157,7 +140,7 @@ namespace AOC2022
         internal void LoadDistances(Dictionary<string, Valve> data)
         {
             foreach (var v in data)
-                if (v.Value != this && !Distances.ContainsKey(v.Value))
+                if (v.Value != this && !Distances.ContainsKey(v.Value) && v.Value.Rate > 0)
                 {
                     var d = GetDistance(data, v.Value);
                     Distances.Add(v.Value, d);
