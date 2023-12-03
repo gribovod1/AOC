@@ -2,127 +2,93 @@
 
 namespace AOC2022
 {
-    internal class Day17 : DayPattern<List<string>>
+    internal class Day17 : DayPattern<string>
     {
         public override void Parse(string singleText)
         {
-            foreach (var c in singleText)
-                Streams.Add(c);
-
-            StonePatterns.Add(new List<(int, int)>() { (0, 0), (1, 0), (2, 0), (3, 0) });
-            StonePatterns.Add(new List<(int, int)>() { (1, 0), (0, 1), (1, 1), (1, 2), (2, 1) });
-            StonePatterns.Add(new List<(int, int)>() { (0, 0), (1, 0), (2, 0), (2, 1), (2, 2) });
-            StonePatterns.Add(new List<(int, int)>() { (0, 0), (0, 1), (0, 2), (0, 3) });
-            StonePatterns.Add(new List<(int, int)>() { (0, 0), (1, 0), (0, 1), (1, 1) });
+            data = singleText;
+            StonePatterns.Add(new int[]{0b000111100});
+            StonePatterns.Add(new int[]{0b000010000, 0b000111000, 0b000010000});
+            StonePatterns.Add(new int[]{0b000111000, 0b000001000, 0b000001000});
+            StonePatterns.Add(new int[]{0b000100000, 0b000100000, 0b000100000, 0b000100000});
+            StonePatterns.Add(new int[]{0b000110000, 0b000110000});
         }
 
         public override string PartOne()
         {
+            CurrentPattern = StonePatterns.Count - 1;
+            StreamNumber = data.Length - 1;
             for (var i = 0; i < 2022; ++i)
             {
                 NewStone();
                 do
                 {
-                    Move(false);
+                    HorizontalMove();
                 }
-                while (Move(true));
-                foreach (var c in CurrentStone)
-                {
-                    if (c.Item2 > YCoordMax)
-                        YCoordMax = c.Item2;
-                    Tower.Add(c);
-                }
-        /*        if (BrickStreamHeight.ContainsKey((BrickNumber, StreamNumber)))
-                {
-                    Console.WriteLine($"Current tower size = {YCoordMax + 1} saved: {BrickStreamHeight[(BrickNumber, StreamNumber)]} Count: {BrickCounter} (BN: {BrickNumber} SN: {StreamNumber}");
-                    return $"Tower size: {(YCoordMax + 1)}";
-                }
-                else
-                {
-                    BrickStreamHeight.Add((BrickNumber, StreamNumber), YCoordMax + 1);
-                }*/
+                while (VerticalMove());
+                AnotherBrickInTheWall();
             }
 
-            return $"Tower size: {(YCoordMax + 1)}";
+            return $"Tower size: {Tower.Count}";
         }
-
-        Dictionary<(int, int),int> BrickStreamHeight = new ();
-
-        int YCoordMax = 0;
 
         public override string PartTwo()
         {
             return 0.ToString();
         }
 
-        int BrickNumber = 0;
-        int StreamNumber = 0;
-        UInt64 BrickCounter = 0;
-
-        void NewStone()
-        {
-            ++BrickCounter;
-            var minY = YCoordMax + 3;
-            BrickNumber = (BrickNumber + 1) % StonePatterns.Count;
-            var c = StonePatterns[BrickNumber];
-            CurrentStone.Clear();
-            for (var i = 0; i < c.Count; ++i)
-                CurrentStone.Add((2 + c[i].Item1, minY + c[i].Item2));
+        void NewStone() {
+            CurrentPattern = (CurrentPattern + 1) % StonePatterns.Count;
+            CurrentCoordinate = Tower.Count + 3;
+            CurrentStone = (int[])StonePatterns[CurrentPattern].Clone();
         }
 
-        bool Move(bool fall)
-        {
-            if (fall)
-            {
-                if (CheckMove(CurrentStone, 0, -1))
-                {
-                    for (var i = 0; i < CurrentStone.Count; ++i)
-                        CurrentStone[i] = (CurrentStone[i].Item1, CurrentStone[i].Item2 - 1);
-                    return true;
-                }
+        void AnotherBrickInTheWall() {
+            for(int p = 0; p <CurrentStone.Length; ++p) {
+                if (CurrentCoordinate + p < Tower.Count)
+                    Tower[CurrentCoordinate + p] |= CurrentStone[p];
+                else
+                    Tower.Add(CurrentStone[p]);
             }
-            else
-            {
-                StreamNumber = (StreamNumber + 1) % Streams.Count;
-                var c = Streams[StreamNumber];
-                var dX = c == '<' ? -1 : 1;
-                if (CheckMove(CurrentStone, dX, 0))
-                {
-                    for (var i = 0; i < CurrentStone.Count; ++i)
-                        CurrentStone[i] = (CurrentStone[i].Item1 + dX, CurrentStone[i].Item2);
-                    return true;
-                }
-            }
-            return false;
         }
 
-        bool CheckMove(List<(int, int)> stone, int dx, int dy)
-        {
-            foreach (var c in stone)
-            {
-                if (c.Item1 + dx < 0 || c.Item1 + dx > 6 || c.Item2 + dy < 0)
-                    return false;
-                if (Tower.Contains((c.Item1 + dx, c.Item2 + dy)))
+        void HorizontalMove() {
+            // Если шаблоны камня и башни не накладываются после перемещения (нет совпадающих '1'), то камень можно переместить 
+            // Перемещение в горизонтали - смещение бит в шаблоне камня по направлению потока
+            StreamNumber = (StreamNumber + 1) % data.Length;
+            for(int p = 0; p < CurrentStone.Length; ++p) {
+                int value = data[StreamNumber] == '<' ? CurrentStone[p] << 1 : CurrentStone[p] >> 1;
+                if (((value & 0b100000001) != 0) || ((CurrentCoordinate + p < Tower.Count) && (Tower[CurrentCoordinate + p] & value) != 0))
+                    return;
+            }
+            for(int p = 0; p < CurrentStone.Length; ++p) {
+                CurrentStone[p] = data[StreamNumber] == '<' ? CurrentStone[p] << 1 : CurrentStone[p] >> 1;
+            }
+        }
+
+        bool VerticalMove() {
+             // Если шаблоны камня и башни не накладываются после перемещения (нет совпадающих '1'), то камень можно переместить
+             // перемещение по вертикали - смещение координаты камня вниз
+           var tempCoordinate = CurrentCoordinate - 1;
+            if (tempCoordinate < 0) {
+                return false;
+            }
+            for(int p = 0; p < CurrentStone.Length; ++p) {
+                if ((tempCoordinate + p < Tower.Count) && (Tower[tempCoordinate + p] & CurrentStone[p]) != 0)
                     return false;
             }
+            CurrentCoordinate = tempCoordinate;
             return true;
         }
 
-        int GetTower()
-        {
-            if (Tower.Count == 0) return 0;
-            var max = 0;
-            foreach (var c in Tower)
-            {
-                if (c.Item2 > max)
-                    max = c.Item2;
-            }
-            return max + 1;
-        }
+        List<int[]> StonePatterns = new ();
+        List<int> Tower =new();
+        List<int> Hashes = new();
+        int[] CurrentStone;
+        int CurrentCoordinate;
 
-        List<char> Streams = new ();
-        List<List<(int, int)>> StonePatterns = new ();
-        HashSet<(int, int)> Tower = new HashSet<(int, int)>();
-        List<(int, int)> CurrentStone = new List<(int, int)>();
+        int CurrentPattern = 0;
+
+        int StreamNumber = 0;
     }
 }

@@ -13,32 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Data\day01.txt" />
-    <None Remove="Data\day02.txt" />
-    <None Remove="Data\day03.txt" />
-    <None Remove="Data\day04.txt" />
-    <None Remove="Data\day05.txt" />
-    <None Remove="Data\day06.txt" />
-    <None Remove="Data\day07.txt" />
-    <None Remove="Data\day08.txt" />
-    <None Remove="Data\day09.txt" />
-    <None Remove="Data\day10.txt" />
-    <None Remove="Data\day11.txt" />
-    <None Remove="Data\day12.txt" />
-    <None Remove="Data\day13.txt" />
-    <None Remove="Data\day14.txt" />
-    <None Remove="Data\day15.txt" />
-    <None Remove="Data\day16.txt" />
-    <None Remove="Data\day17.txt" />
-    <None Remove="Data\day19.txt" />
-    <None Remove="Data\day20.txt" />
-    <None Remove="Data\day21.txt" />
-    <None Remove="Data\day22.txt" />
-    <None Remove="Data\day23.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Data\day17.txt">
+    <Content Include="Data\Day17.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Data\day23.txt">
