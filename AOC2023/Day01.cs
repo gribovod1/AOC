@@ -2,7 +2,7 @@
 
 namespace AOC2023
 {
-    internal class Day1 : DayPattern<List<string>>
+    internal class Day01 : DayPattern<List<string>>
     {
         public override void Parse(string singleText)
         {

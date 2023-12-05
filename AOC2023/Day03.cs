@@ -2,7 +2,7 @@ using AnyThings;
 
 namespace AOC2023
 {
-    internal class Day3 : DayPattern<string[]>
+    internal class Day03 : DayPattern<string[]>
     {
         public override void Parse(string singleText)
         {
