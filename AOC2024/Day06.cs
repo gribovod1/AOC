@@ -89,7 +89,7 @@ namespace AOC2024
             return false;
         }
 
-        private int step(HashSet<Day06Coordinates> Traces, ref Day06Coordinates coord, int stepsBeforeAdd)
+        private int stepCycleFind(HashSet<Day06Coordinates> Traces, ref Day06Coordinates coord)
         {
             if (checkOut(coord))
             {
@@ -97,74 +97,35 @@ namespace AOC2024
                 coord.r += coord.dr;
                 return -1;
             }
-            if (stepsBeforeAdd >=0 && Traces.Count == stepsBeforeAdd)
+            while (data[coord.r + coord.dr][coord.c + coord.dc] == '#')
             {
-                if (data[coord.r + coord.dr][coord.c + coord.dc] == '#') return -1;
-
-                int countRotate = 0;
-
-                do
+                if (coord.dc == 1)
                 {
-                    if (coord.dc == 1)
-                    {
-                        coord.dc = 0;
-                        coord.dr = 1;
-                    }
-                    else if (coord.dr == 1)
-                    {
-                        coord.dc = -1;
-                        coord.dr = 0;
-                    }
-                    else if (coord.dc == -1)
-                    {
-                        coord.dc = 0;
-                        coord.dr = -1;
-                    }
-                    else if (coord.dr == -1)
-                    {
-                        coord.dc = 1;
-                        coord.dr = 0;
-                    }
-                    if (checkOut(coord))
-                    {
-                        coord.c += coord.dc;
-                        coord.r += coord.dr;
-                        return -1;
-                    }
-                    ++countRotate;
-                } while (data[coord.r + coord.dr][coord.c + coord.dc] == '#' && countRotate < 4);
-                if (countRotate == 4) return -1;
-            }
-            else
-                while (data[coord.r + coord.dr][coord.c + coord.dc] == '#' || (stepsBeforeAdd >=0 && MainTrace[stepsBeforeAdd].c == coord.c + coord.dc && MainTrace[stepsBeforeAdd].r == coord.r + coord.dr))
-                {
-                    if (coord.dc == 1)
-                    {
-                        coord.dc = 0;
-                        coord.dr = 1;
-                    }
-                    else if (coord.dr == 1)
-                    {
-                        coord.dc = -1;
-                        coord.dr = 0;
-                    }
-                    else if (coord.dc == -1)
-                    {
-                        coord.dc = 0;
-                        coord.dr = -1;
-                    }
-                    else if (coord.dr == -1)
-                    {
-                        coord.dc = 1;
-                        coord.dr = 0;
-                    }
-                    if (checkOut(coord))
-                    {
-                        coord.c += coord.dc;
-                        coord.r += coord.dr;
-                        return -1;
-                    }
+                    coord.dc = 0;
+                    coord.dr = 1;
                 }
+                else if (coord.dr == 1)
+                {
+                    coord.dc = -1;
+                    coord.dr = 0;
+                }
+                else if (coord.dc == -1)
+                {
+                    coord.dc = 0;
+                    coord.dr = -1;
+                }
+                else if (coord.dr == -1)
+                {
+                    coord.dc = 1;
+                    coord.dr = 0;
+                }
+                if (checkOut(coord))
+                {
+                    coord.c += coord.dc;
+                    coord.r += coord.dr;
+                    return -1;
+                }
+            }
             coord.c += coord.dc;
             coord.r += coord.dr;
             return Traces.Add(coord) ? 0 : 1;
@@ -179,23 +140,27 @@ namespace AOC2024
         {
             var coord = start;
             HashSet<Day06Coordinates> Traces = new();
-            while (coord.c >= 0 && coord.c < data[0].Length && coord.r >= 0 && coord.r < data.Length)
+            data[MainTrace[stepsCount].r][MainTrace[stepsCount].c] = '#';
+            try
             {
-                int stepResult = step(Traces, ref coord, stepsCount);
-                if (stepResult == -1) return false;
-                if (stepResult == 1) return true;
+                while (coord.c >= 0 && coord.c < data[0].Length && coord.r >= 0 && coord.r < data.Length)
+                {
+                    int stepResult = stepCycleFind(Traces, ref coord);
+                    if (stepResult == -1) return false;
+                    if (stepResult == 1) return true;
+                }
+                return false;
             }
-            return false;
+            finally
+            {
+                data[MainTrace[stepsCount].r][MainTrace[stepsCount].c] = '.';
+            }
         }
 
         List<Day06Coordinates> MainTrace = new();
 
         public override string PartTwo()
         {
-            if (checkNewBarrier(-1))
-            {
-                return "ОФИГЕТЬ!";
-            }
             long result = 0;
             for (int s = 0; s < MainTrace.Count; ++s)
                 if (checkNewBarrier(s))
