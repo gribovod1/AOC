@@ -80,7 +80,7 @@ namespace AOC2024
             coord.c += coord.dc;
             coord.r += coord.dr;
             Traces.Add(coord);
-            MainTrace.Add(coord);
+            MainTrace.Add((coord.c,coord.r,0,0));
             if (data[coord.r][coord.c] == '.')
             {
                 data[coord.r][coord.c] = 'X';
@@ -136,11 +136,11 @@ namespace AOC2024
             return (coord.c + coord.dc < 0 || coord.c + coord.dc >= data[0].Length || coord.r + coord.dr < 0 || coord.r + coord.dr >= data.Length);
         }
 
-        bool checkNewBarrier(int stepsCount)
+        bool checkNewBarrier(Day06Coordinates newBarrier)
         {
             var coord = start;
             HashSet<Day06Coordinates> Traces = new();
-            data[MainTrace[stepsCount].r][MainTrace[stepsCount].c] = '#';
+            data[newBarrier.r][newBarrier.c] = '#';
             try
             {
                 while (coord.c >= 0 && coord.c < data[0].Length && coord.r >= 0 && coord.r < data.Length)
@@ -153,17 +153,17 @@ namespace AOC2024
             }
             finally
             {
-                data[MainTrace[stepsCount].r][MainTrace[stepsCount].c] = '.';
+                data[newBarrier.r][newBarrier.c] = '.';
             }
         }
 
-        List<Day06Coordinates> MainTrace = new();
+        HashSet<Day06Coordinates> MainTrace = new();
 
         public override string PartTwo()
         {
             long result = 0;
-            for (int s = 0; s < MainTrace.Count; ++s)
-                if (checkNewBarrier(s))
+            foreach(var c in MainTrace)
+                if (checkNewBarrier(c))
                     ++result;
             return result.ToString();
         }
