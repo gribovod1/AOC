@@ -1,6 +1,4 @@
 ﻿using AnyThings;
-using System.Drawing;
-using System.Linq;
 using Day07Item = (long result, string resultText, System.Collections.Generic.List<int> operands);
 
 namespace AOC2024
@@ -25,64 +23,33 @@ namespace AOC2024
         {
             long result = 0;
             foreach (var s in data)
-            {
-                if (fullCheck(s))
+                if (fullCheck(s, false))
                     result += s.result;
-            }
             return result.ToString();
-        }
-
-        private bool fullCheck(Day07Item s)
-        {
-            return treeCheck(s, s.operands[0], 1);
-        }
-
-        private bool treeCheck(Day07Item s, long currentResult, int index)
-        {
-            if (currentResult == s.result && index == s.operands.Count) return true;
-            if (currentResult > s.result) return false;
-            if (index >= s.operands.Count) return false;
-            if (treeCheck(s, currentResult * s.operands[index], index + 1))
-                return true;
-            return (treeCheck(s, currentResult + s.operands[index], index + 1));
         }
 
         public override string PartTwo()
         {
             long result = 0;
             foreach (var s in data)
-            {
-                if (fullCheck2(s))
+                if (fullCheck(s, true))
                     result += s.result;
-            }
             return result.ToString();
         }
 
-        private bool fullCheck2(Day07Item s)
+        private bool fullCheck(Day07Item s, bool useSplit)
         {
-            return treeCheck2(s, s.operands[0], 1, false);
+            return treeCheck(s, s.operands[0], 1, useSplit);
         }
 
-        private bool treeCheck2(Day07Item s, long currentResult, int index, bool usedSplit)
+        private bool treeCheck(Day07Item s, long currentResult, int index, bool useSplit)
         {
-            if (index >= s.operands.Count) return currentResult == s.result;
-            if (treeCheck2(s, currentResult * s.operands[index], index + 1, usedSplit))
+            if (index == s.operands.Count) return currentResult == s.result;
+            if (treeCheck(s, currentResult * s.operands[index], index + 1, useSplit))
                 return true;
-            if (treeCheck2(s, currentResult + s.operands[index], index + 1, usedSplit))
+            if (treeCheck(s, currentResult + s.operands[index], index + 1, useSplit))
                 return true;
-            if (!usedSplit)
-                return treeCheck2(s,long.Parse( currentResult.ToString() + s.operands[index].ToString()), index + 1, true);
-            return false;
-            if (!usedSplit)
-                for (int c = 1; c < s.resultText.Length; c++)
-                    if (long.Parse(s.resultText.Substring(0, c)) == currentResult)
-                    {
-                        if (treeCheck2((long.Parse(s.resultText.Substring(c)), s.resultText.Substring(c), s.operands.GetRange(index, s.operands.Count - index)), s.operands[index], 1, true))
-                            return true;
-                        return false;
-                    }
-            return false;
+            return useSplit && treeCheck(s, long.Parse(currentResult.ToString() + s.operands[index].ToString()), index + 1, useSplit);
         }
-
     }
 }
