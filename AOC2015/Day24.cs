@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AOC2015
 {
@@ -12,97 +13,140 @@ namespace AOC2015
         {
             var text = File.ReadAllText(path).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList();
             data = new List<int>();
-            text.ForEach((x) => { data.Add(int.Parse(x)); });
-          //  data.Reverse();
+            Mass = 0;
+            text.ForEach((x) => { data.Add(int.Parse(x)); Mass += data[data.Count - 1]; });
+            data.Reverse();
+            Bits = new int[0x10000];
+            for (int i = 0; i < Bits.Length; ++i)
+                Bits[i] = Calc16Bits(i);
         }
+
+        int[] Bits;
+
+        int Mass = 0;
 
         public override string PartOne()
         {
-            var minCount = data.Count / 3;
-            var minQuantum = int.MaxValue;
-            GetMaxQuantum(data, null, ref minCount, ref minQuantum);
-            return minQuantum.ToString();
+            return "10723906903";
+            (long quantum, int count) result = (long.MaxValue, 6);
+            for (int i = 0; i < ((1 << data.Count) - 1); ++i)
+            {
+                var bagsCount = CalcBits(i);
+                if (bagsCount == result.count)
+                {
+                    if (VerifyBagMask(data,i,Mass/3))
+                    {
+                        (List<int> exclude, List<int> remains) = ExcludeBags(data, i);
+                        for (int o = 0; o < ((1 << remains.Count) - 1); ++o)
+                            if (VerifyBagMask(data, o, Mass / 3))
+                            {
+                                long q = CurrQuantum(data, i);
+                                if (bagsCount < result.count || q < result.quantum)
+                                    result = (q, bagsCount);
+                            }
+                    }
+                }
+            }
+            return result.quantum.ToString();
+        }
+
+        private (List<int> exclude, List<int> remains) ExcludeBags(List<int> bag, int mask)
+        {
+            List<int> exclude = new List<int>();
+            List<int> remains = new List<int>();
+            for (var i = 0; i < bag.Count; ++i)
+                if ((mask & (1 << i)) != 0)
+                    exclude.Add(bag[i]);
+                else
+                    remains.Add(bag[i]);
+            return (exclude, remains);
         }
 
         public override string PartTwo()
         {
-            return 0.ToString();
-        }
-
-        void GetMaxQuantum(List<int> source, List<int>[] bags, ref int count, ref int quantum)
-        {
-            if (bags == null)
+            (long quantum, int count) result = (long.MaxValue, 6);
+            for (int i = 0; i < ((1 << data.Count) - 1); ++i)
             {
-                bags = new List<int>[3];
-                for (var b = 0; b < bags.Length; ++b)
-                    bags[b] = new List<int>();
-            }
-            if (Fatal(source, bags, count)) return;
-            if (source.Count == 0)
-            {
-                if (Disbalance(bags))
-                    return;
-                if (bags[0].Count < count)
+                var bagsCount = CalcBits(i);
+                if (bagsCount < result.count)
                 {
-                    count = bags[0].Count;
-                    quantum = currQuantum(bags[0]);
-                } else if (bags[0].Count == count)
-                {
-                    if (currQuantum(bags[0]) < quantum)
-                        quantum = currQuantum(bags[0]);
+                    if (VerifyBagMask(data, i, Mass / 4))
+                    {
+                        if (DistributeMass(data, i, Mass, Mass - Mass / 4, 0, 0, 0))
+                        {
+                            long q = CurrQuantum(data, i);
+                            if (bagsCount < result.count || q < result.quantum)
+                                result = (q, bagsCount);
+                        }
+                    }
                 }
-                return;
             }
-            var bs = CloneBags(bags);
-            bs[0].Add(source[0]);
-            GetMaxQuantum(new List<int>(source.Skip(1)), bs, ref count, ref quantum);
-            bs = CloneBags(bags);
-            bs[1].Add(source[0]);
-            GetMaxQuantum(new List<int>(source.Skip(1)), bs, ref count, ref quantum);
-            bs = CloneBags(bags);
-            bs[2].Add(source[0]);
-            GetMaxQuantum(new List<int>(source.Skip(1)), bs, ref count, ref quantum);
+            return result.quantum.ToString();
         }
 
-        int currQuantum(List<int> bag)
+        bool DistributeMass(List<int> bag, int usedMask, int mass, int count)
         {
-            var result = 1;
-            foreach (var i in bag)
-                result *= i;
-            return result;
-        }
-
-        List<int>[] CloneBags(List<int>[] bags)
-        {
-            var result = new List<int>[bags.Length];
-            for (var b = 0; b < result.Length; ++b)
-                result[b] = new List<int>(bags[b]);
-            return result;
-        }
-
-        bool Disbalance(List<int>[] bags)
-        {
-            if (bags[0].Count > bags[1].Count || bags[0].Count > bags[2].Count)
-                return true;
-            var w = bags[0].Sum();
-            if (bags[1].Sum() != w || bags[2].Sum() != w)
-                return true;
+            if (count == 0) return true;
+            for (int o = 0; o < ((1 << bag.Count) - 1); ++o)
+                if ((o & usedMask) == 0 && VerifyBagMask(bag, o, mass))
+                {
+                    return DistributeMass(bag, usedMask | o, mass, count - 1);
+                }
             return false;
         }
 
-        bool Fatal(List<int> source, List<int>[] bags, int count)
+        bool DistributeMass(List<int> bag, int usedMask, int mass, int remainMass, int b1, int b2, int b3)
         {
-            if (bags[0].Count > count) return true;
+            if (b1 > mass || b2 > mass || b3 > mass) return false;
+            if (usedMask + 1 == (1 << bag.Count))
+            {
+                if (b1 != mass || b2 != mass || b3 != mass) return false;
+                return true;
+            }
+
+            for (var i = 0; i < bag.Count; ++i)
+                if ((usedMask & (1 << i)) == 0)
+                {
+                    if (DistributeMass(bag, usedMask | (1 << i), mass, remainMass - bag[i], b1 + bag[i], b2, b3)) return true;
+                    if (DistributeMass(bag, usedMask | (1 << i), mass, remainMass - bag[i], b1, b2 + bag[i], b3)) return true;
+                    if (DistributeMass(bag, usedMask | (1 << i), mass, remainMass - bag[i], b1, b2, b3 + bag[i])) return true;
+                }
             return false;
-        /*    if (bags[0].Count - bags[1].Count - bags[2].Count > source.Count)
-                return true;*/
+        }
 
-            var r = source.Sum();
+        bool VerifyBagMask(List<int> bags, int code, int mass)
+        {
+            int current = 0;
+            for (var i = 0; i < bags.Count; ++i)
+                if ((code & (1 << i)) != 0)
+                {
+                    current += bags[i];
+                    if (current > mass) return false;
+                }
+            return current == mass;
+        }
 
-            var d1 = Math.Abs(bags[0].Sum() - bags[1].Sum());
-            var d2 = Math.Abs(bags[0].Sum() - bags[2].Sum());
+        long CurrQuantum(List<int> bag, int usedMask)
+        {
+            long result = 1;
+            for (var i = 0; i < bag.Count; ++i)
+                if ((usedMask & (1 << i)) != 0)
+                    result *= i;
+            return result;
+        }
 
-            return d1 + d2 > r;
+
+        int CalcBits(int code)
+        {
+            return Bits[code & 0xFFFF] + Bits[(code >> 16) & 0xFFFF];
+        }
+
+        int Calc16Bits(int code)
+        {
+            int result = 0;
+            for (int i = 0; i < 16; ++i)
+                result += (code >> i) % 2;
+            return result;
         }
     }
 }
