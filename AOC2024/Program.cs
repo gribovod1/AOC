@@ -1,4 +1,4 @@
-﻿using CurrentDay = AOC2024.Day11;
+﻿using CurrentDay = AOC2024.Day13;
 
 var currentDay = new CurrentDay();
 currentDay.Exec($"Data/{currentDay.GetType().Name}.txt");
