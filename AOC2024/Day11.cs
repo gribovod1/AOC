@@ -1,153 +1,87 @@
 ﻿using AnyThings;
-using Coord = (int r, int c);
 
 namespace AOC2024
 {
-    internal class Day11 : DayPattern<List<long>>
+    internal class Day11 : DayPattern<Dictionary<long, long>>
     {
         public override void Parse(string singleText)
         {
             string[] nText = singleText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             data = new();
             foreach (var t in nText)
-                data.Add(long.Parse(t));
+                AddNumber(data, long.Parse(t), 1);
         }
 
         public override string PartOne()
         {
-            long result = CalcStoneCount(50);
+            long result = 0;
+            var numbers = data;
+            Dictionary<long, Action<long, long, Dictionary<long, long>>> Functions = new();
+            for (int i = 0; i < 25; ++i)
+                numbers = ProcessStones(numbers, Functions);
+            foreach (var n in numbers)
+                result += n.Value;
             return result.ToString();
         }
 
         public override string PartTwo()
         {
-            long result = 0;// CalcStoneCount(75);
+            long result = 0;
+            var numbers = data;
+            Dictionary<long, Action<long, long, Dictionary<long, long>>> Functions = new();
+            for (int i = 0; i < 75; ++i)
+                numbers = ProcessStones(numbers, Functions);
+            foreach (var n in numbers)
+                result += n.Value;
             return result.ToString();
         }
 
-        private long CalcStoneCount(int v)
+        Dictionary<long, long> ProcessStones(Dictionary<long, long> NumbersCount, Dictionary<long, Action<long, long, Dictionary<long, long>>> Functions)
         {
-            Console.Write($"{data.Count}: ");
-            for (var s = 0; s < data.Count && s < 10; ++s)
-                Console.Write($"{data[s]} ");
-            Console.WriteLine();
-            List<long> current = data;
-            int PREV = current.Count;
-            for (var i = 0; i < v; ++i)
+            Dictionary<long, long> result = new();
+            foreach (var s in NumbersCount)
             {
-                current = ProcessStones(current);
-                current.Sort();
-                int Count0 = 0;
-                int CountOdd = 0;
-                int CountOther = 0;
-                for (var s = 0; s < current.Count; ++s)
+                if (!Functions.ContainsKey(s.Key))
                 {
-                    if (current[s] == 0)
-                        ++Count0;
-                    else if ((current[s].ToString().Length % 2) == 0)
-                    {
-                        ++CountOdd;
-                    } else
-                    {
-                        ++CountOther;
-                    }
-                }
-
-                Console.Write($"{current.Count}: {Count0} {CountOdd} {CountOther}");
-                PREV = current.Count;
-                Console.WriteLine();
-            }
-            Console.WriteLine();
-
-
-            List<char> text = new();
-            foreach(var c in current)
-            {
-                var n = c.ToString();
-                text.AddRange(n);
-            }
-            Console.WriteLine($"Text length: {text.Count}");
-            int lenght = 1;
-
-            while (lenght < text.Count / 2)
-            {
-                int one = 0;
-                int two = lenght;
-                while (one < lenght && text[one] == text[two])
-                {
-                    ++one;
-                    ++two;
-                }
-                if (one == lenght)
-                    Console.WriteLine($"Sub length: {one}");
-                ++lenght;
-            }
-            Console.WriteLine();
-
-           // var sub = longestSubstring(current);
-           // Console.WriteLine($"{sub.Count}");
-            return current.Count;
-        }
-
-        private List<long> ProcessStones(List<long> current)
-        {
-            List<long> result = new();
-            foreach(var s in current)
-            {
-                if (s == 0)
-                    result.Add(1);
-                else
-                {
-                    var t = s.ToString();
-                    if ((t.Length % 2) == 0)
-                    {
-                        result.Add(long.Parse(t.Substring(0, t.Length / 2)));
-                        result.Add(long.Parse(t.Substring(t.Length / 2)));
-                    }
+                    if (s.Key == 0)
+                        Functions.Add(s.Key, Rule1);
                     else
                     {
-                        result.Add(s * 2024);
+                        var t = s.Key.ToString();
+                        if ((t.Length % 2) == 0)
+                            Functions.Add(s.Key, Rule2);
+                        else
+                            Functions.Add(s.Key, Rule3);
                     }
                 }
+                Functions[s.Key](s.Key, NumbersCount[s.Key], result);
             }
             return result;
         }
 
-        static List<long> longestSubstring(List<long> s)
+        void Rule1(long number, long count, Dictionary<long, long> NumbersCount)
         {
-            int n = s.Count;
-            int[] dp = new int[n + 1];
+            AddNumber(NumbersCount, 1, count);
+        }
 
-            List<long> ans = new();
-            int ansLen = 0;
+        void Rule2(long number, long count, Dictionary<long, long> NumbersCount)
+        {
+            var t = number.ToString();
+            AddNumber(NumbersCount, long.Parse(t.Substring(0, t.Length / 2)), count);
+            AddNumber(NumbersCount, long.Parse(t.Substring(t.Length / 2)), count);
+        }
 
-            // find length of non-overlapping 
-            // substrings for all pairs (i, j)
-            for (int i = n - 1; i >= 0; i--)
-            {
-                for (int j = i; j < n; j++)
-                {
+        void Rule3(long number, long count, Dictionary<long, long> NumbersCount)
+        {
+            AddNumber(NumbersCount, number * 2024 , count);
+        }
 
-                    // if characters match, set value 
-                    // and compare with ansLen.
-                    if (s[i] == s[j])
-                    {
-                        dp[j] = 1 + Math.Min(dp[j + 1], j - i - 1);
-
-                        if (dp[j] >= ansLen)
-                        {
-                            ansLen = dp[j];
-                            ans = s.GetRange(i, ansLen);
-                        }
-                    }
-                    else
-                    {
-                        dp[j] = 0;
-                    }
-                }
-            }
-
-            return ans;
+        void AddNumber(Dictionary<long, long> NumbersCount, long number, long count)
+        {
+            if (NumbersCount.ContainsKey(number))
+                NumbersCount[number] += count;
+            else
+                NumbersCount.Add(number, count);
         }
     }
 }
