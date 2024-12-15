@@ -6,12 +6,14 @@ namespace AnyThings
 {
     public abstract class DayPattern<T>
     {
+        public string Puzzle;
         public T data;
         public abstract string PartOne();
         public abstract string PartTwo();
         public virtual void ParseFile(string path)
         {
-            Parse(File.ReadAllText(path));
+            Puzzle = File.ReadAllText(path);
+            Parse(Puzzle);
         }
         public virtual void Parse(string text)
         {
