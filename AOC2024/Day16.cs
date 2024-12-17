@@ -6,12 +6,13 @@ using Coord = (int x, int y);
 
 namespace AOC2024
 {
-    internal class Day16 : DayPattern<(HashSet<Coord> wall, (Coord position, Coord direction) reindeer, Coord end)>
+    internal class Day16 : DayPattern<(HashSet<Coord> wall, (Coord position, Coord direction) reindeer, Coord end, Dictionary<Coord, long> path)>
     {
         public override void Parse(string singleText)
         {
             data = new();
             data.wall = new();
+            data.path = new();
 
             var map = singleText.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
             for (int r = 0; r < map.Length; r++)
@@ -42,6 +43,7 @@ namespace AOC2024
         {
             long result = 0;
             result = BFS();
+            Show();
             bestScore = result;
             return result.ToString();
         }
@@ -50,12 +52,11 @@ namespace AOC2024
 
         long BFS()
         {
-            Dictionary<Coord, long> path = new();
             Queue<(Coord position, Coord direction, long coast, int count)> next_ = new();
             next_.Enqueue((data.reindeer.position, data.reindeer.direction, 0, 1));
             while (next_.Count > 0)
-                BFS_Step(next_.Dequeue(), path, next_);
-            return path[data.end];
+                BFS_Step(next_.Dequeue(), data.path, next_);
+            return data.path[data.end];
         }
 
         void BFS_Step((Coord position, Coord direction, long coast, int count) current, Dictionary<Coord, long> path, Queue<(Coord position, Coord direction, long coast, int count)> next)
@@ -159,12 +160,37 @@ namespace AOC2024
             Console.SetCursorPosition((int)data.end.x + 5, (int)data.end.y + 10);
             Console.Write('E');
             Console.SetCursorPosition(0, 30);
+
+            try
+            {
+                var x = data.reindeer.position.x;
+                var y = data.reindeer.position.y;
+                var k = Console.ReadKey();
+                while (k.Key != ConsoleKey.Escape)
+                {
+                    switch (k.Key)
+                    {
+                        case ConsoleKey.LeftArrow: { x--; break; }
+                        case ConsoleKey.RightArrow: { x++; break; }
+                        case ConsoleKey.UpArrow: { y--; break; }
+                        case ConsoleKey.DownArrow: { y++; break; }
+                    }
+                    Console.SetCursorPosition(0, 30);
+                    if (data.path.ContainsKey((x,y)))
+                        Console.WriteLine($"{x} {y} {data.path[(x, y)]}                   ");
+                    else
+                        Console.WriteLine($"{x} {y} NOT PATH                   ");
+                    k = Console.ReadKey();
+                }
+            } catch { }
+
+
         }
 
         public override string PartTwo()
         {
             long result = 0;
-            result = DFS();
+         //   result = DFS();
             return result.ToString();
         }
     }
