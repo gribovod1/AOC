@@ -1,7 +1,4 @@
 ﻿using AnyThings;
-using System.Collections;
-using System.Collections.Generic;
-using static System.Net.Mime.MediaTypeNames;
 using Coord = (int x, int y);
 
 namespace AOC2024

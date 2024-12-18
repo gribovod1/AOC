@@ -31,13 +31,39 @@ namespace AOC2024
 
         public override string PartTwo()
         {
-            int current = data.bytes.Count - 1;
+            int maxByte = data.AllBytes.Count - 1;
+            int minByte = data.bytes.Count - 1;
+
+            int current = minByte;
             do
             {
-                ++current;
-                data.bytes.Add(data.AllBytes[current]);
+                int currentByte = (maxByte + minByte) / 2;
+                if (currentByte > current)
+                {
+                    for (int b = current + 1; b <= currentByte; b++)
+                        data.bytes.Add(data.AllBytes[b]);
+                }
+                else if (currentByte < current)
+                {
+                    for (int b = currentByte + 1; b <= current; b++)
+                        data.bytes.Remove(data.AllBytes[b]);
+                }
+                current = currentByte;
+                if (minByte < maxByte)
+                {
+                    if (ByteTest() != 0)
+                    {
+                        minByte = current;
+                    }
+                    else
+                    {
+                        maxByte = current;
+                    }
+                }
             }
-            while (ByteTest() != 0);
+            while (minByte + 1 < maxByte);
+            if (minByte != maxByte && ByteTest() != 0)
+                current = maxByte;
             return $"{data.AllBytes[current].x},{data.AllBytes[current].y}";
         }
 

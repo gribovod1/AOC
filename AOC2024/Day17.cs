@@ -117,7 +117,7 @@ namespace AOC2024
 
         long BitsFind()
         {
-            for (long i = 0; i < 1024; ++i)
+            for (long i = 0; i < 8; ++i)
             {
                 var r = BitsFind(i, 1);
                 if (r > 0)
@@ -132,7 +132,7 @@ namespace AOC2024
             var currentResult = Execute(result, 0, 0, data.Program);
             if (!CheckOutput(currentResult, lastCount)) return 0;
             else if (lastCount == data.Program.Count) return result;
-            for (long i = 0; i < 1024; ++i)
+            for (long i = 0; i < 8; ++i)
             {
                 var r = BitsFind((result << 3) + i, lastCount + 1);
                 if (r > 0)
