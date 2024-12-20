@@ -39,26 +39,18 @@ namespace AOC2024
             {
                 int currentByte = (maxByte + minByte) / 2;
                 if (currentByte > current)
-                {
                     for (int b = current + 1; b <= currentByte; b++)
                         data.bytes.Add(data.AllBytes[b]);
-                }
                 else if (currentByte < current)
-                {
                     for (int b = currentByte + 1; b <= current; b++)
                         data.bytes.Remove(data.AllBytes[b]);
-                }
                 current = currentByte;
                 if (minByte < maxByte)
                 {
                     if (ByteTest() != 0)
-                    {
                         minByte = current;
-                    }
                     else
-                    {
                         maxByte = current;
-                    }
                 }
             }
             while (minByte + 1 < maxByte);
