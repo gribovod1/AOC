@@ -1,4 +1,5 @@
 ﻿using AnyThings;
+using System.Collections.Generic;
 using System.Text;
 using Coord = (int x, int y);
 
@@ -99,36 +100,41 @@ namespace AOC2024
 
         public override string PartTwo()
         {
-            long maxCount = 0;
-            string result = string.Empty;
+            int maxCount = 0;
+            List<Comp> maxLAN = null;
             var comps = data.Values.ToHashSet();
             while (comps.Count > 0)
             {
                 var c = comps.First();
-                HashSet<Comp> currentLAN = new();
-                AddRange(currentLAN, c);
-                if (currentLAN.Count > maxCount)
+                var lan = GetMaxLAN(new(), c.Comps.Values.ToList(), c, maxCount);
+                if (maxCount < lan.Count)
                 {
-                    maxCount = currentLAN.Count;
-                    var list = currentLAN.ToList();
-                    var sb = new StringBuilder();
-                    foreach (Comp comp in list)
-                        sb.Append($"{comp.Name},");
-                    result = sb.ToString(0, sb.Length - 1);
+                    maxCount = lan.Count;
+                    maxLAN = lan;
                 }
+                comps.Remove(c);
             }
-            return result;
+
+            maxLAN.Sort();
+            StringBuilder result = new();
+            foreach (var l in maxLAN)
+                result.Append($"{l.Name},");
+            return result.ToString(1, result.Length - 1);
         }
 
-        bool AddRange(HashSet<Comp> LAN, Comp comp)
+        List<Comp> GetMaxLAN(List<Comp> currentLAN, List<Comp> futureLAN, Comp current, int maxSize)
         {
-            bool result = false;
-            foreach (var link in comp.Comps)
-                if (LAN.Add(link.Value))
-                {
-                    result = true;
-                    AddRange(LAN, link.Value);
-                }
+            if (current.Comps.Count < maxSize) return currentLAN;
+
+            foreach(var c in futureLAN)
+            {
+                var result = new List<Comp>(currentLAN);
+                result.Add(current);
+                var sub = GetMaxLAN(result, futureLAN.Intersect(c.Comps.Values.ToList()), c, maxSize);
+            }
+
+
+
             return result;
         }
     }

@@ -41,33 +41,51 @@ namespace AOC2024
         public override string PartOne()
         {
             /*
-             Берём точку трассы и и генерируем 8 точек, которые должны изменить маршрут.
+             Берём точку трассы и и генерируем 2 точки, которые должны изменить маршрут.
             Добавляем эти точки в общий список и делаем волну, считаем сколько заняло времени, если меньше на 100 ходов, то ++             
              */
             long TimeBeforeCheat = BFS();
             long result = 0;
             var ts = data.trace.ToList();
-            Dictionary<long, List<HashSet<Coord>>> traces = new();
-            foreach(var trace in ts)
+            //Dictionary<long, List<HashSet<Coord>>> traces = new();
+            HashSet<(Coord p1, Coord p2)> cheats = new();
+            foreach (var trace in ts)
             {
-                if (TimeWithCheat((trace.x + 1, trace.y ), (trace.x + 2, trace.y), traces) == TimeBeforeCheat - 8) 
+                if (TimeWithCheat((trace.x + 1, trace.y), (trace.x + 2, trace.y), cheats) <= TimeBeforeCheat - 100)
                     ++result;
-               // if (TimeWithCheat((trace.x - 1, trace.y ), (trace.x - 2, trace.y )) <= TimeBeforeCheat - 20) ++result;
-                if (TimeWithCheat((trace.x , trace.y + 1), (trace.x, trace.y + 2), traces) == TimeBeforeCheat -8) 
+                if (TimeWithCheat((trace.x, trace.y + 1), (trace.x, trace.y + 2), cheats) <= TimeBeforeCheat - 100)
                     ++result;
-               // if (TimeWithCheat((trace.x , trace.y - 1), (trace.x , trace.y - 2)) <= TimeBeforeCheat - 20) ++result;
+            /*    if (TimeWithCheat((trace.x + 1, trace.y), (trace.x + 2, trace.y), cheats) == TimeBeforeCheat - 8)
+                    ++result;
+                if (TimeWithCheat((trace.x, trace.y + 1), (trace.x, trace.y + 2), cheats) == TimeBeforeCheat - 8)
+                    ++result;*/
             }
             return result.ToString();
         }
 
-        long TimeWithCheat(Coord p1, Coord p2, Dictionary<long, List<HashSet<Coord>>> traces)
+        long TimeWithCheat(Coord p1, Coord p2, HashSet<(Coord p1, Coord p2)> cheats)
         {
-            bool needDeleteP1 = !data.trace.Contains(p1);
-            bool needDeleteP2 = !data.trace.Contains(p2);
-            data.trace.Add(p1);
-            data.trace.Add(p2);
-            var hash = TraceHash();
             long result = long.MaxValue;
+            if (data.trace.Contains(p1)) return result;
+            data.trace.Add(p1);
+            bool needDeleteP2 = data.trace.Add(p2);
+            if (!cheats.Contains((p1, p2)))
+            {
+                result = BFS();
+                cheats.Add((p1, p2));
+            }
+            data.trace.Remove(p1);
+            if (needDeleteP2) data.trace.Remove(p2);
+            return result;
+        }
+
+        long TimeWithCheat2(Coord p1, Coord p2, Dictionary<long, List<HashSet<Coord>>> traces)
+        {
+            long result = long.MaxValue;
+            if (data.trace.Contains(p1)) return result;
+            data.trace.Add(p1);
+            bool needDeleteP2 = data.trace.Add(p2);
+            var hash = TraceHash();
             if (traces.ContainsKey(hash))
             {
                 if (!ExistTrace(traces[hash], data.trace))
@@ -75,13 +93,14 @@ namespace AOC2024
                     result = BFS();
                     traces[hash].Add(new(data.trace));
                 }
-            } else
+            }
+            else
             {
                 result = BFS();
                 traces.Add(hash, new());
                 traces[hash].Add(new(data.trace));
             }
-            if (needDeleteP1) data.trace.Remove(p1);
+            data.trace.Remove(p1);
             if (needDeleteP2) data.trace.Remove(p2);
             return result;
         }
