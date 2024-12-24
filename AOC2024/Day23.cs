@@ -124,7 +124,8 @@ namespace AOC2024
 
         List<Comp> GetMaxLAN(List<Comp> currentLAN, List<Comp> futureLAN, Comp current, int maxSize)
         {
-            if (current.Comps.Count < maxSize) return currentLAN;
+            return currentLAN;
+         /*   if (current.Comps.Count < maxSize) return currentLAN;
 
             foreach(var c in futureLAN)
             {
@@ -135,7 +136,7 @@ namespace AOC2024
 
 
 
-            return result;
+            return result;*/
         }
     }
 }
