@@ -1,5 +1,6 @@
 ﻿using AnyThings;
 using System.Text;
+using System.Xml.Linq;
 
 namespace AOC2024
 {
@@ -183,14 +184,33 @@ namespace AOC2024
                 Element element3 = data[description[3]];
                 Element gate = description[1] switch
                 {
-                    "AND" => new GateAND(g, element1, element2),
-                    "OR" => new GateOR(g, element1, element2),
-                    "XOR" => new GateXOR(g, element1, element2),
-                    _ => new Wire(g),
+                    "AND" => new GateAND("Gate " + g, element1, element2),
+                    "OR" => new GateOR("Gate " + g, element1, element2),
+                    "XOR" => new GateXOR("Gate " + g, element1, element2),
+                    _ => new Wire("Gate " + g),
                 };
                 data.Add(g, gate);
                 ((Wire)element3).InputElement = gate;
             }
+
+            long xValue = 0;
+            long yValue = 0;
+            var list = data.Values.ToList();
+            foreach (var g in list)
+            {
+                if (g.Name[0] == 'x' || g.Name[0] == 'y')
+                {
+                    var index = g.GetIndex();
+                    if (g.Name[0] == 'x')
+                    {
+                        xValue |= ((long)g.Value.Value << index);
+                    } else
+                    {
+                        yValue |= ((long)g.Value.Value << index);
+                    }
+                }
+            }
+            Console.WriteLine($"x: {xValue} y: {yValue}");
         }
 
         public override string PartOne()
@@ -220,13 +240,29 @@ namespace AOC2024
                       }
                   }*/
             }
-            return resultInt.ToString();
+            return resultInt.ToString("B");
+
+        }
+
+        long GetDifference(long x, long y)
+        {
 
         }
 
         public override string PartTwo()
         {
             long result = 0;
+            /*
+             1. Запустить пару известных чисел, меняя по одному биту.
+            2. Вычисляем правильный результат (z провода)
+            3. Получаем, какие биты были выставлены не верно
+            4. По проводам, управляющим данными битами, вычисляем ВСЕ родительские провода
+            5. Вычисляем пересечение множеств полученных проводов и ранее полученного множества
+            6. После проверки каждого входного бита x с каждым входным битом y, получим провода, выставленные не верно
+            7. Если таких проводов 8 - то ответ найден
+             */
+
+
 
             return result.ToString();
         }
