@@ -58,6 +58,20 @@ namespace AOC2024
                 }
             return result;
         }
+
+        public HashSet<Element> GetWires(HashSet<Element>? prev = null)
+        {
+            var result = prev ?? new HashSet<Element>();
+            var inputs = GetInputs();
+            foreach (var input in inputs)
+                if (input != null)
+                {
+                    if (input is Wire)
+                        result.Add(input);
+                    input.GetWires(result);
+                }
+            return result;
+        }
     }
 
     class Wire : Element
@@ -273,16 +287,19 @@ namespace AOC2024
 
         }
 
-        long GetDifference(long x, long y)
+        void Clean(long x, long y)
         {
-            var trueValue = x + y;
             foreach (Element element in data.Values)
             {
                 if (element.isX()) { element.Value = (int)((x >> element.GetIndex()) & 1); }
                 else if (element.isY()) { element.Value = (int)((y >> element.GetIndex()) & 1); }
                 else { element.Clear(); }
             }
-            long falseValue = 0;
+        }
+
+        long GetZ(long x, long y)
+        {
+            long result = 0;
             var list = data.Values.ToList();
             Queue<Element> q = new Queue<Element>(list);
             while (q.Count > 0)
@@ -293,16 +310,69 @@ namespace AOC2024
                     if (element.ProcessAll())
                     {
                         int index = element.GetIndex();
-                        falseValue |= ((long)element.Value.Value << index);
+                        result |= ((long)element.Value.Value << index);
                     }
                 }
             }
-            return trueValue ^ falseValue;
+            return result;
+        }
+
+        long GetDifference(long x, long y)
+        {
+            Clean(x, y);
+            return (x + y) ^ GetZ(x, y);
+        }
+
+        Element GetWire(char bus, int index)
+        {
+            return data[bus + index.ToString("00")];
         }
 
         public override string PartTwo()
         {
             long result = 0;
+            /*
+Заполняем подряд биты для обоих чисел начиная с младших,
+как только результат будет отличаться от ожидаемого - то значит в новых задействованных проводниках ошибка.
+Необходимо фиксировать, какие провода были задействованы.             
+*/
+
+            for (int bit_index = 0; bit_index < 45; ++bit_index)
+            {
+                long x = (long)1 << bit_index;
+                long y = (long)1 << bit_index;
+                Clean(x, y);
+                long z = GetZ(x, y);
+                if (z != x + y)
+                {
+                    var zWrong = GetWire('z', bit_index + 1);
+                    var p = zWrong.GetParents();
+                    var ws = zWrong.GetWires().ToList();
+                    Console.WriteLine($"Wrong index: {bit_index}");
+                    for (int w = ws.Count - 1; w >= 0; --w)
+                        if (!ws[w].isX() && !ws[w].isY())
+                        {
+                            Clean(x, y);
+                            ws[w].Value = 1;
+                            long zT1 = GetZ(x, y);
+                            if (zT1 == x + y)
+                            {
+                                Console.WriteLine($"Wrong wire: {ws[w]}");
+                            }/*
+                            Clean(x, y);
+                            ws[w].Value = 1;
+                            zT1 = GetZ(x, y);
+                            if (zT1 == x + y)
+                            {
+                                Console.WriteLine($"Wrong wire: {ws[w]}");
+                            }*/
+                        }
+                }
+            }
+
+
+
+
             /*
              1. Запустить пару известных чисел, меняя по одному биту.
             2. Вычисляем правильный результат (z провода)
@@ -312,6 +382,8 @@ namespace AOC2024
             6. После проверки каждого входного бита x с каждым входным битом y, получим провода, выставленные не верно
             7. Если таких проводов 8 - то ответ найден
              */
+
+
             HashSet<Element> suspects = new();
             long wrong_bits = 0;
             foreach (Element element in data.Values)
@@ -325,13 +397,31 @@ namespace AOC2024
                     //HashSet<Element> GetParent(data[]);
                 }
 
+            HashSet<Element> goodElements = new();
             for (int w = 0; w <= 45; ++w)
-          //      if ((int)((wrong_bits >> w) & 1) == 1)
+            {
+                var n = "z" + w.ToString("00");
+                var e = data[n];
+                if ((int)((wrong_bits >> w) & 1) == 0)
                 {
-                    var n = "z" + w.ToString("00");
-                    var e = data[n];
-                    List<Element> parents = e.GetParents();
+                    goodElements.Add(e);
+                    var parents = e.GetParents();
+                    foreach (var p in parents)
+                        goodElements.Add(p);
                 }
+            }
+
+            for (int w = 0; w <= 45; ++w)
+            {
+                var n = "z" + w.ToString("00");
+                var e = data[n];
+                if ((int)((wrong_bits >> w) & 1) == 1)
+                {
+                    List<Element> parents = e.GetParents();
+                    var s=parents.Except(goodElements).ToList();
+                    result += s.Count;
+                }
+            }
 
 
             return result.ToString();
