@@ -3,7 +3,7 @@ using System.Text;
 
 namespace AOC2024
 {
-    abstract class Element
+    abstract class Element: IComparable
     {
         public string Name { get; set; }
 
@@ -15,7 +15,7 @@ namespace AOC2024
         public int? Value { get; set; }
 
         public abstract bool Process();
-
+        
         public abstract bool ProcessAll();
 
         public bool isZ()
@@ -84,6 +84,13 @@ namespace AOC2024
                 else if (input == e || !input.CycleTest(e))
                     return false;
             return true;
+        }
+
+        public int CompareTo(object? obj)
+        {
+            Element e = obj as Element;
+            if (e !=null) return Name.CompareTo(e.Name);
+            return 0;
         }
     }
 
@@ -330,6 +337,15 @@ namespace AOC2024
             return result;
         }
 
+        long GetZ(long x, long y, int bit)
+        {
+            Clean(x, y);
+            var e = GetWire('z', bit);
+            if (e.ProcessAll())
+               return e.Value.Value;
+            return -1;
+        }
+
         long GetDifference(long x, long y)
         {
             Clean(x, y);
@@ -344,13 +360,36 @@ namespace AOC2024
         long Test()
         {
             long wrong_bits = 0;
-            for (int x = 0; x < 45; ++x)
-                for (int y = 0; y < 45; ++y)
-                {
-                    var diff = GetDifference(((long)1 << x), ((long)1 << y));
-                    wrong_bits |= diff;
-                }
+            for (int t = 0; t < tests.Length; ++t)
+            {
+                var diff = GetDifference(tests[t].x, tests[t].y);
+                wrong_bits |= diff;
+            }
             return wrong_bits;
+        }
+
+        (long x, long y)[] tests = new (long x, long y)[] {
+            (0, 0),
+            (0xFFFFFFFFFFF, 0xFFFFFFFFFFF),
+            (0x2AAAAAAAAAA, 0x15555555555),
+            (0x15555555555, 0x2AAAAAAAAAA)
+        };
+
+        bool Test(int bit)
+        {
+            for (int t = 0; t < tests.Length; ++t)
+            {
+                var z = GetZ(tests[t].x, tests[t].y, bit);
+                if (z != (((tests[t].x + tests[t].y) >> bit) & 1)) return false;
+            }
+            return true;
+        }
+
+        bool FullTest()
+        {
+            for (int t = 0; t < tests.Length; ++t)
+                if (GetDifference(tests[t].x, tests[t].y)!=0) return false;
+            return true;
         }
 
         HashSet<Element> GetAllSuspects(long wrong_bits)
@@ -384,11 +423,12 @@ namespace AOC2024
 
         bool SwapWires(Element wire1, Element wire2)
         {
+            if (wire1.isX() || wire1.isY() || wire2.isX() || wire2.isY()) return false;
             var i1 = (wire1 as Wire).InputElement;
             var i2 = (wire2 as Wire).InputElement;
             (wire1 as Wire).InputElement = i2;
             (wire2 as Wire).InputElement = i1;
-            if (wire1.CycleTest() && wire2.CycleTest()) 
+            if (wire1.CycleTest() && wire2.CycleTest())
                 return true;
             (wire1 as Wire).InputElement = i1;
             (wire2 as Wire).InputElement = i2;
@@ -406,21 +446,19 @@ namespace AOC2024
             return result;
         }
 
-        (bool modify, int wire1, int wire2) FindSwap(List<Element> wrongElements, long wrong_bits)
+        (bool modify, Element wire1, Element wire2) FindSwap(HashSet<Element> Exclude, List<Element> wrongElements, int bit)
         {
+            var allElements = data.Values.ToList();
             for (int w1 = 0; w1 < wrongElements.Count; ++w1)
-                for (int w2 = w1 + 1; w2 < wrongElements.Count; ++w2)
-                    if (SwapWires(wrongElements[w1], wrongElements[w2]))
+                for (int w2 = 0; w2 < allElements.Count; ++w2)
+                    if (!Exclude.Contains(allElements[w2]) && !Exclude.Contains(wrongElements[w1]) && (allElements[w2] != wrongElements[w1]) && (allElements[w2] is Wire) && SwapWires(wrongElements[w1], allElements[w2]))
                     {
-                        long wrong_bits2 = Test();
-                        if (OneCount(wrong_bits2) < OneCount(wrong_bits))
-                            return (true, w1, w2);
+                        if (Test(bit))
+                            return (true, wrongElements[w1], allElements[w2]);
                         else
-                        {
-                            SwapWires(wrongElements[w1], wrongElements[w2]);
-                        }
+                            SwapWires(wrongElements[w1], allElements[w2]);
                     }
-            return (false, -1, -1);
+            return (false, null, null);
         }
 
         public override string PartTwo()
@@ -433,27 +471,28 @@ namespace AOC2024
                 if (((wrong_bits >> bit) & 1) != 0)
                 {
                     List<Element> wrongElements = GetSuspects(bit).ToList();
-                    while (wrongElements.Count > 0)
+                    wrongElements = wrongElements.Except(swap).ToList();
+                    //                    while (wrongElements.Count > 0)
                     {
-                        (bool modify, int w1, int w2) = FindSwap(wrongElements, wrong_bits);
+                        (bool modify, Element w1, Element w2) = FindSwap(swap, wrongElements, bit);
                         if (modify)
                         {
-                            swap.Add(wrongElements[w1]);
-                            swap.Add(wrongElements[w2]);
-                            wrongElements = GetSuspects(bit).ToList();
+                            swap.Add(w1);
+                            swap.Add(w2);
+                            //                           wrongElements = GetSuspects(bit).ToList();
                         }
                     }
                 }
                 ++bit;
             }
             wrong_bits = Test();
-            if (wrong_bits != 0) Console.WriteLine($"Это ещё не всё! {wrong_bits.ToString("00")}");
+            if (wrong_bits != 0) Console.WriteLine($"Это ещё не всё! {wrong_bits.ToString("B")}");
             var swaped = swap.ToList();
             swaped.Sort();
             StringBuilder result = new();
             foreach (Element element in swaped)
                 result.Append($"{element.Name},");
-            return result.ToString(1, result.Length - 1);
+            return result.ToString(0, result.Length - 1);
 
 
 
