@@ -1,4 +1,5 @@
 ﻿using AnyThings;
+using System.Text;
 
 namespace AOC2024
 {
@@ -59,18 +60,30 @@ namespace AOC2024
             return result;
         }
 
-        public HashSet<Element> GetWires(HashSet<Element>? prev = null)
+        public HashSet<Element> GetWires(bool ExcludeINputOutput, HashSet<Element>? prev = null)
         {
             var result = prev ?? new HashSet<Element>();
             var inputs = GetInputs();
             foreach (var input in inputs)
                 if (input != null)
                 {
-                    if (input is Wire)
+                    if (input is Wire && !(ExcludeINputOutput && (input.isX() || input.isY() || input.isZ())))
                         result.Add(input);
-                    input.GetWires(result);
+                    input.GetWires(ExcludeINputOutput, result);
                 }
             return result;
+        }
+
+        public bool CycleTest(Element node = null)
+        {
+            var e = node ?? this;
+            var inputs = GetInputs();
+            foreach (var input in inputs)
+                if (input == null)
+                    continue;
+                else if (input == e || !input.CycleTest(e))
+                    return false;
+            return true;
         }
     }
 
@@ -128,7 +141,7 @@ namespace AOC2024
 
         public override List<Element> GetInputs()
         {
-            return new List<Element>() { source1,source2 };
+            return new List<Element>() { source1, source2 };
         }
 
         public GateAND(string name, Element source1, Element source2, int? value = null)
@@ -328,9 +341,122 @@ namespace AOC2024
             return data[bus + index.ToString("00")];
         }
 
+        long Test()
+        {
+            long wrong_bits = 0;
+            for (int x = 0; x < 45; ++x)
+                for (int y = 0; y < 45; ++y)
+                {
+                    var diff = GetDifference(((long)1 << x), ((long)1 << y));
+                    wrong_bits |= diff;
+                }
+            return wrong_bits;
+        }
+
+        HashSet<Element> GetAllSuspects(long wrong_bits)
+        {
+            HashSet<Element> wrongElements = new();
+            for (int w = 0; w <= 45; ++w)
+            {
+                var n = "z" + w.ToString("00");
+                var e = data[n];
+                if ((int)((wrong_bits >> w) & 1) != 0)
+                {
+                    //                   wrongElements.Add(e);
+                    var parents = e.GetWires(true);
+                    foreach (var p in parents)
+                        wrongElements.Add(p);
+                }
+            }
+            return wrongElements;
+        }
+
+        HashSet<Element> GetSuspects(int bit_index)
+        {
+            HashSet<Element> wrongElements = new();
+            var n = "z" + bit_index.ToString("00");
+            var e = data[n];
+            var parents = e.GetWires(true);
+            foreach (var p in parents)
+                wrongElements.Add(p);
+            return wrongElements;
+        }
+
+        bool SwapWires(Element wire1, Element wire2)
+        {
+            var i1 = (wire1 as Wire).InputElement;
+            var i2 = (wire2 as Wire).InputElement;
+            (wire1 as Wire).InputElement = i2;
+            (wire2 as Wire).InputElement = i1;
+            if (wire1.CycleTest() && wire2.CycleTest()) 
+                return true;
+            (wire1 as Wire).InputElement = i1;
+            (wire2 as Wire).InputElement = i2;
+            return false;
+        }
+
+        int OneCount(long number)
+        {
+            int result = 0;
+            while (number > 0)
+            {
+                if (number % 1 != 0) ++result;
+                number >>= 1;
+            }
+            return result;
+        }
+
+        (bool modify, int wire1, int wire2) FindSwap(List<Element> wrongElements, long wrong_bits)
+        {
+            for (int w1 = 0; w1 < wrongElements.Count; ++w1)
+                for (int w2 = w1 + 1; w2 < wrongElements.Count; ++w2)
+                    if (SwapWires(wrongElements[w1], wrongElements[w2]))
+                    {
+                        long wrong_bits2 = Test();
+                        if (OneCount(wrong_bits2) < OneCount(wrong_bits))
+                            return (true, w1, w2);
+                        else
+                        {
+                            SwapWires(wrongElements[w1], wrongElements[w2]);
+                        }
+                    }
+            return (false, -1, -1);
+        }
+
         public override string PartTwo()
         {
-            long result = 0;
+            long wrong_bits = Test();
+            int bit = 0;
+            HashSet<Element> swap = new();
+            while (bit < 45)
+            {
+                if (((wrong_bits >> bit) & 1) != 0)
+                {
+                    List<Element> wrongElements = GetSuspects(bit).ToList();
+                    while (wrongElements.Count > 0)
+                    {
+                        (bool modify, int w1, int w2) = FindSwap(wrongElements, wrong_bits);
+                        if (modify)
+                        {
+                            swap.Add(wrongElements[w1]);
+                            swap.Add(wrongElements[w2]);
+                            wrongElements = GetSuspects(bit).ToList();
+                        }
+                    }
+                }
+                ++bit;
+            }
+            wrong_bits = Test();
+            if (wrong_bits != 0) Console.WriteLine($"Это ещё не всё! {wrong_bits.ToString("00")}");
+            var swaped = swap.ToList();
+            swaped.Sort();
+            StringBuilder result = new();
+            foreach (Element element in swaped)
+                result.Append($"{element.Name},");
+            return result.ToString(1, result.Length - 1);
+
+
+
             /*
 Заполняем подряд биты для обоих чисел начиная с младших,
 как только результат будет отличаться от ожидаемого - то значит в новых задействованных проводниках ошибка.
@@ -347,7 +473,7 @@ namespace AOC2024
                 {
                     var zWrong = GetWire('z', bit_index + 1);
                     var p = zWrong.GetParents();
-                    var ws = zWrong.GetWires().ToList();
+                    var ws = zWrong.GetWires(false).ToList();
                     Console.WriteLine($"Wrong index: {bit_index}");
                     for (int w = ws.Count - 1; w >= 0; --w)
                         if (!ws[w].isX() && !ws[w].isY())
@@ -371,57 +497,6 @@ namespace AOC2024
             }
 
 
-
-
-            /*
-             1. Запустить пару известных чисел, меняя по одному биту.
-            2. Вычисляем правильный результат (z провода)
-            3. Получаем, какие биты были выставлены не верно
-            4. По проводам, управляющим данными битами, вычисляем ВСЕ родительские провода
-            5. Вычисляем пересечение множеств полученных проводов и ранее полученного множества
-            6. После проверки каждого входного бита x с каждым входным битом y, получим провода, выставленные не верно
-            7. Если таких проводов 8 - то ответ найден
-             */
-
-
-            HashSet<Element> suspects = new();
-            long wrong_bits = 0;
-            foreach (Element element in data.Values)
-                if (element is Wire) suspects.Add(element);
-            for (int x = 0; x < 45; ++x)
-                for (int y = 0; y < 45; ++y)
-                {
-                    var diff = GetDifference(((long)1 << x), ((long)1 << y));
-                    wrong_bits |= diff;
-                    //for(int i =0; i < 45;++i)
-                    //HashSet<Element> GetParent(data[]);
-                }
-
-            HashSet<Element> goodElements = new();
-            for (int w = 0; w <= 45; ++w)
-            {
-                var n = "z" + w.ToString("00");
-                var e = data[n];
-                if ((int)((wrong_bits >> w) & 1) == 0)
-                {
-                    goodElements.Add(e);
-                    var parents = e.GetParents();
-                    foreach (var p in parents)
-                        goodElements.Add(p);
-                }
-            }
-
-            for (int w = 0; w <= 45; ++w)
-            {
-                var n = "z" + w.ToString("00");
-                var e = data[n];
-                if ((int)((wrong_bits >> w) & 1) == 1)
-                {
-                    List<Element> parents = e.GetParents();
-                    var s=parents.Except(goodElements).ToList();
-                    result += s.Count;
-                }
-            }
 
 
             return result.ToString();
