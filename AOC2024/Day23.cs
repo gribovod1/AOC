@@ -111,7 +111,9 @@ namespace AOC2024
             {
                 var c = comps.First();
                 HashSet<Comp> lan = new();
-                if (GetMaxLAN(lan, c, maxCount) && lan.Count > maxCount)
+                var absoluteLAN = c.Comps.Values.ToHashSet();
+                absoluteLAN.Add(c);
+                if (GetMaxLAN(lan, absoluteLAN, c, maxCount) && lan.Count > maxCount)
                 {
                     maxCount = lan.Count;
                     maxLAN = lan;
@@ -126,18 +128,30 @@ namespace AOC2024
             return result.ToString(0, result.Length - 1);
         }
 
-        bool GetMaxLAN(HashSet<Comp> currentLAN, Comp current, int maxSize)
+        bool GetMaxLAN(HashSet<Comp> currentLAN, HashSet<Comp> maxLAN, Comp current, int maxSize)
         {
             if (current.Comps.Count < maxSize) return false;
+            if (currentLAN.Contains(current)) return false;
+            if (!maxLAN.Contains(current)) return false;
 
-            if (currentLAN.Except(current.Comps.Values).Count() > 0) return false;
+            var comps = maxLAN.ToList();
+            for(int i=0;i < comps.Count;++i)
+                if (!current.Comps.ContainsKey(comps[i].Name))
+                {
+                    maxLAN.Remove(comps[i]);
+                    currentLAN.Remove(comps[i]);
+                }
+
+            foreach (var comp in maxLAN) 
+                if (!current.Comps.ContainsKey(comp.Name))
+                    return false;
 
             currentLAN.Add(current);
             HashSet<Comp> result = null;
             foreach (var c in current.Comps.Values)
             {
                 HashSet<Comp> nextLAN = new(currentLAN);
-                if (GetMaxLAN(nextLAN, c, maxSize))
+                if (GetMaxLAN(nextLAN, maxLAN, c, maxSize))
                 {
                     if (maxSize < nextLAN.Count)
                     {
