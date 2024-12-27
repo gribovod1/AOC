@@ -36,18 +36,38 @@ namespace AOC2024
             return number;
         }
 
-        string CalcDescription(long number, long steps)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="number"></param>
+        /// <param name="steps"></param>
+        /// <returns>пары: подстрока(первый экземпляр) - количество бананов</returns>
+        Dictionary<string, int> CalcDescription(long number, long steps, HashSet<string> uniqueSequences)
         {
             StringBuilder sb = new();
             sb.Append((char)((number % 10) + 'O'));
             var prev_number = number;
-            for (var i = 1; i < steps; ++i)
+            Dictionary<string, int> result = new();
+            var i = 0;
+            for (i = 0; i < 3; ++i)
             {
                 number = Calc(prev_number);
                 sb.Append((char)((number % 10) - (prev_number % 10) + 'O'));
                 prev_number = number;
             }
-            return sb.ToString();
+            for (; i < steps; ++i)
+            {
+                number = Calc(prev_number);
+                sb.Append((char)((number % 10) - (prev_number % 10) + 'O'));
+                var sub = sb.ToString(sb.Length - 4, 4);
+                if (!result.ContainsKey(sub))
+                {
+                    result.Add(sub, (int)(number % 10));
+                    uniqueSequences.Add(sub);
+                }
+                prev_number = number;
+            }
+            return result;
         }
 
         public override string PartOne()
@@ -61,9 +81,19 @@ namespace AOC2024
         public override string PartTwo()
         {
             long result = 0;
-            List<string> list = new List<string>();
+            List<Dictionary<string, int>> list = new();
+            HashSet<string> subs = new();
             foreach (var item in data)
-                list.Add(CalcDescription(item, 2000));
+                list.Add(CalcDescription(item, 2000, subs));
+            foreach (var s in subs)
+            {
+                long value = 0;
+                foreach (var mon in list)
+                    if (mon.ContainsKey(s))
+                        value += mon[s];
+                if (result < value)
+                    result = value;
+            }
             return result.ToString();
         }
     }
