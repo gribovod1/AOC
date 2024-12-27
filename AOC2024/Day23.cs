@@ -8,6 +8,11 @@ namespace AOC2024
     {
         public string Name;
 
+        public override string ToString()
+        {
+            return Name;
+        }
+
         public Dictionary<string, Comp> Comps;
         public Comp(string name)
         {
@@ -118,7 +123,7 @@ namespace AOC2024
             StringBuilder result = new();
             foreach (var l in list)
                 result.Append($"{l.Name},");
-            return result.ToString(1, result.Length - 1);
+            return result.ToString(0, result.Length - 1);
         }
 
         bool GetMaxLAN(HashSet<Comp> currentLAN, Comp current, int maxSize)
@@ -132,7 +137,6 @@ namespace AOC2024
             foreach (var c in current.Comps.Values)
             {
                 HashSet<Comp> nextLAN = new(currentLAN);
-                nextLAN.Add(c);
                 if (GetMaxLAN(nextLAN, c, maxSize))
                 {
                     if (maxSize < nextLAN.Count)
