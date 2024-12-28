@@ -1,4 +1,5 @@
 ﻿using AnyThings;
+using System.Security.Cryptography;
 
 namespace AOC2024
 {
@@ -15,94 +16,6 @@ namespace AOC2024
             data.doorToUserTable = doorToUserTable;
 
             data.codes = singleText.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-        }
-
-        Dictionary<(char, char), long> GetNextTable(Dictionary<(char, char), long> table)
-        {
-            Dictionary<(char, char), long> result = new()
-            {
-                { ('A', '<'), 2 * (table[('A', '>')] + table[('>', 'v')] + table[('<', 'v')]+1) },
-                { ('A', '>'), 2 * (table[('A', '>')] +1) },
-                { ('A', '^'), 2 *(table[('A', '^')] + 1) },
-                { ('A', 'v'), 2 *(table[('A', '>')] + table[('>', 'v')] + 1)},
-                { ('<', '>'), 2 *(table[('<', 'v')] + table[('>', 'v')] + 1) },
-                { ('<', '^'), 2 *(table[('<', 'v')] + table[('^', 'v')] + 1) },
-                { ('<', 'v'), 2 *(table[('<', 'v')] + 1) },
-                { ('>', '^'), 2 *(table[('>', 'v')] + table[('^', 'v')] + 1) },
-                { ('>', 'v'), 2 *(table[('>', 'v')] + 1)},
-                { ('^', 'v'), 2 *(table[('^', 'v')] + 1) }
-            };
-            var l = result.ToList();
-            for (int i = 0; i < l.Count; ++i)
-                result.Add((l[i].Key.Item2, l[i].Key.Item1), l[i].Value);
-            result.Add(('A', 'A'), 1);
-            return result;
-        }
-
-        Dictionary<(char, char), long> GetFinalTable(Dictionary<(char, char), long> table)
-        {
-            Dictionary<(char, char), long> result = new()
-            {
-                { ('A', '0'), 2 * table[('A', '<')] + 1 },
-                { ('A', '1'), 2 * (table[('A', '^')] + 2 * table[('A', '<')]) + 1 },
-                { ('A', '2'), 2 * (table[('A', '^')] + 1 * table[('A', '<')]) + 1 },
-                { ('A', '3'), 2 * (table[('A', '^')]) + 1 },
-                { ('A', '4'), 2 * (2 * table[('A', '^')] + 2 * table[('A', '<')]) + 1 },
-                { ('A', '5'), 2 * (2 * table[('A', '^')] + 1 * table[('A', '<')]) + 1 },
-                { ('A', '6'), 2 * (2 * table[('A', '^')]) + 1 },
-                { ('A', '7'), 2 * (3 * table[('A', '^')] + 2 * table[('A', '<')]) + 1 },
-                { ('A', '8'), 2 * (3 * table[('A', '^')] + 1 * table[('A', '<')]) + 1 },
-                { ('A', '9'), 2 * (3 * table[('A', '^')]) + 1 },
-                { ('0', '1'), 2 * (table[('A', '^')] + table[('A', '<')]) + 1 },
-                { ('0', '2'), 2 * (table[('A', '^')]) + 1 },
-                { ('0', '3'), 2 * (table[('A', '^')] + table[('A', '<')]) + 1 },
-                { ('0', '4'), 2 * (2 * table[('A', '^')] + 2 * table[('A', '<')]) + 1 },
-                { ('0', '5'), 2 * (2 * table[('A', '^')] + 1 * table[('A', '<')]) + 1 },
-                { ('0', '6'), 2 * (2 * table[('A', '^')]) + 1 },
-                { ('0', '7'), 2 * (3 * table[('A', '^')] + 2 * table[('A', '<')]) + 1 },
-                { ('0', '8'), 2 * (3 * table[('A', '^')] + 1 * table[('A', '<')]) + 1 },
-                { ('0', '9'), 2 * (3 * table[('A', '^')]) + 1 },
-                { ('1', '2'), 2 * (table[('A', '>')]) + 1 },
-                { ('1', '3'), 2 * (2 * table[('A', '>')]) + 1 },
-                { ('1', '4'), 2 * (table[('A', '^')]) + 1 },
-                { ('1', '5'), 2 * (table[('A', '^')] + 1 * table[('A', '>')]) + 1 },
-                { ('1', '6'), 2 * (1 * table[('A', '^')] + 2 * table[('A', '>')]) + 1 },
-                { ('1', '7'), 2 * (2 * table[('A', '^')]) + 1 },
-                { ('1', '8'), 2 * (2 * table[('A', '^')] + 1 * table[('A', '>')]) + 1 },
-                { ('1', '9'), 2 * (2 * table[('A', '^')] + 2 * table[('A', '>')]) + 1 },
-                { ('2', '3'), 2 * (0 * table[('A', '^')] + 1 * table[('A', '>')]) + 1 },
-                { ('2', '4'), 2 * (1 * table[('A', '^')] + 1 * table[('A', '<')]) + 1 },
-                { ('2', '5'), 2 * (1 * table[('A', '^')] + 0 * table[('A', '>')]) + 1 },
-                { ('2', '6'), 2 * (1 * table[('A', '^')] + 1 * table[('A', '>')]) + 1 },
-                { ('2', '7'), 2 * (2 * table[('A', '^')] + 1 * table[('A', '<')]) + 1 },
-                { ('2', '8'), 2 * (2 * table[('A', '^')] + 0 * table[('A', '>')]) + 1 },
-                { ('2', '9'), 2 * (2 * table[('A', '^')] + 1 * table[('A', '>')]) + 1 },
-                { ('3', '4'), 2 * (1 * table[('A', '^')] + 2 * table[('A', '<')]) + 1 },
-                { ('3', '5'), 2 * (1 * table[('A', '^')] + 1 * table[('A', '<')]) + 1 },
-                { ('3', '6'), 2 * (1 * table[('A', '^')] + 0 * table[('A', '>')]) + 1 },
-                { ('3', '7'), 2 * (2 * table[('A', '^')] + 2 * table[('A', '<')]) + 1 },
-                { ('3', '8'), 2 * (2 * table[('A', '^')] + 1 * table[('A', '<')]) + 1 },
-                { ('3', '9'), 2 * (2 * table[('A', '^')] + 0 * table[('A', '>')]) + 1 },
-                { ('4', '5'), 2 * (0 * table[('A', '^')] + 1 * table[('A', '>')]) + 1 },
-                { ('4', '6'), 2 * (0 * table[('A', '^')] + 2 * table[('A', '>')]) + 1 },
-                { ('4', '7'), 2 * (1 * table[('A', '^')] + 0 * table[('A', '<')]) + 1 },
-                { ('4', '8'), 2 * (1 * table[('A', '^')] + 1 * table[('A', '>')]) + 1 },
-                { ('4', '9'), 2 * (1 * table[('A', '^')] + 2 * table[('A', '>')]) + 1 },
-                { ('5', '6'), 2 * (0 * table[('A', '^')] + 1 * table[('A', '>')]) + 1 },
-                { ('5', '7'), 2 * (1 * table[('A', '^')] + 1 * table[('A', '<')]) + 1 },
-                { ('5', '8'), 2 * (1 * table[('A', '^')] + 0 * table[('A', '>')]) + 1 },
-                { ('5', '9'), 2 * (1 * table[('A', '^')] + 1 * table[('A', '>')]) + 1 },
-                { ('6', '7'), 2 * (1 * table[('A', '^')] + 2 * table[('A', '<')]) + 1 },
-                { ('6', '8'), 2 * (1 * table[('A', '^')] + 1 * table[('A', '<')]) + 1 },
-                { ('6', '9'), 2 * (1 * table[('A', '^')] + 0 * table[('A', '>')]) + 1 },
-                { ('7', '8'), 2 * (0 * table[('A', '^')] + 1 * table[('A', '>')]) + 1 },
-                { ('7', '9'), 2 * (0 * table[('A', '^')] + 2 * table[('A', '>')]) + 1 },
-                { ('8', '9'), 2 * (0 * table[('A', '^')] + 1 * table[('A', '>')]) + 1 }
-            };
-            var l = result.ToList();
-            for(int i=0;i<l.Count;++i)
-                result.Add((l[i].Key.Item2, l[i].Key.Item1), l[i].Value);
-            return result;
         }
 
         Dictionary<(char, char), List<char>> GetDoorKeys()
@@ -132,7 +45,7 @@ namespace AOC2024
                 { ('1', '4'), new(){ '^', 'A' } },
                 { ('1', '5'), new(){ '^',  '>', 'A' } },
                 { ('1', '6'), new(){ '^', '>', '>','A' } },
-                { ('1', '7'), new(){ '^', '^', '^','A' } },
+                { ('1', '7'), new(){ '^', '^', 'A' } },
                 { ('1', '8'), new(){ '^', '^', '^', '>', 'A' } },
                 { ('1', '9'), new(){ '^', '^', '^', '>', '>','A' } },
                 { ('2', '3'), new(){ '>', 'A' } },
@@ -166,14 +79,25 @@ namespace AOC2024
             };
             var l = result.ToList();
             for (int i = 0; i < l.Count; ++i)
-            {
-                List<char> keys = new(l[i].Value);
-                keys.Reverse();
-                result.Add((l[i].Key.Item2, l[i].Key.Item1), keys);
-            }
+                result.Add((l[i].Key.Item2, l[i].Key.Item1), ReturnPath(l[i].Value));
             var e = new List<char>() { 'A', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
             foreach (char c in e)
                 result.Add((c, c), new List<char> { 'A' });
+            return result;
+        }
+
+        List<char> ReturnPath(List<char> path)
+        {
+            List<char> result = new();
+            foreach (char c in path)
+                switch (c)
+                {
+                    case '<': { result.Add('>'); break; }
+                    case '>': { result.Add('<'); break; }
+                    case 'v': { result.Add('^'); break; }
+                    case '^': { result.Add('v'); break; }
+                    default: { result.Add(c); break; }
+                }
             return result;
         }
 
@@ -193,11 +117,7 @@ namespace AOC2024
             };
             var l = result.ToList();
             for (int i = 0; i < l.Count; ++i)
-            {
-                List<char> keys = new(l[i].Value);
-                keys.Reverse();
-                result.Add((l[i].Key.Item2, l[i].Key.Item1), keys);
-            }
+                result.Add((l[i].Key.Item2, l[i].Key.Item1), ReturnPath(l[i].Value));
             var e = new List<char>() { 'A', '>', 'v', '<', '^' };
             foreach (char c in e)
                 result.Add((c, c), new List<char> { 'A' });
@@ -214,7 +134,10 @@ namespace AOC2024
 
                 char prevKey = 'A';
                 for (int index = 0; index < p.Value.Count; ++index)
+                {
                     newPath.AddRange(translation[(prevKey, p.Value[index])]);
+                    prevKey = p.Value[index];
+                }
                 result.Add(p.Key, newPath);
             }
             return result;
